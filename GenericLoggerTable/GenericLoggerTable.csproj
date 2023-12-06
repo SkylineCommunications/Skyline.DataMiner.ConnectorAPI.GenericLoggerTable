@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net462</TargetFramework>
+		<PlatformTarget>x86</PlatformTarget>
+		<CodeAnalysisRuleSet>InteractiveAutomationToolkit.ruleset</CodeAnalysisRuleSet>
+		<AssemblyName>Skyline.DataMiner.ConnectorAPI.GenericLoggerTable</AssemblyName>
+		<RootNamespace>Skyline.DataMiner.ConnectorAPI.GenericLoggerTable</RootNamespace>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Authors>SkylineCommunications</Authors>
+		<Company>Skyline Communications</Company>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageTags>Skyline;DataMiner</PackageTags>
+		<PackageProjectUrl>https://skyline.be/</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/SkylineCommunications/Skyline.DataMiner.ConnectorAPI.GenericLoggerTable</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<Description>This repository contains the messages that are used to interact with the Generic Logger Table connector using InterApp communication.</Description>
+		<PackageIcon>Icon.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Version>1.0.1</Version>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\README.md" Pack="true" PackagePath="" />
+		<None Include="..\LICENSE.txt" Pack="true" PackagePath="" />
+		<None Include="nuget\Icon.png" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Skyline.DataMiner.Core.InterAppCalls.Common" Version="1.0.0.2" />
+	</ItemGroup>
+</Project>
