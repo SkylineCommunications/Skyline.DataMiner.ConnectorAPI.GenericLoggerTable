@@ -1,8 +1,8 @@
-﻿using System;
-
-namespace Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.Messages
+﻿namespace Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.Messages
 {
-    public class AddEntryRequest
+    using Skyline.DataMiner.Core.InterAppCalls.Common.CallSingle;
+
+    public class AddEntryRequest : Message
     {
         public string Id { get; set; }
 
