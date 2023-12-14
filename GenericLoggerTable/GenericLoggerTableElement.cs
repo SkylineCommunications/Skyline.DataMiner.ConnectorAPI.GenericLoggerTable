@@ -69,6 +69,8 @@
         public GenericLoggerTableElement(IConnection connection, int agentId, int elementId)
         {
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            this.agentId = agentId;
+            this.elementId = elementId;
         }
 
         /// <summary>
