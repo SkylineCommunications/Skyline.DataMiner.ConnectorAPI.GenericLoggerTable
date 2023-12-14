@@ -81,8 +81,11 @@
         /// <param name="id">Id of the entry to retrieve.</param>
         /// <returns>Data contained in the requested entry.</returns>
         /// <exception cref="InvalidOperationException">Thrown if we're unable to retrieve the requested data.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
         public string GetEntry(string id)
         {
+            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+
             var request = new GetEntryRequest
             {
                 Id = id,
@@ -105,8 +108,11 @@
         /// <param name="data">Data contained in the requested entry.</param>
         /// <param name="reason">Reason if data could not be retrieved.</param>
         /// <returns>Value indicating if data could be retrieved or not.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
         public bool TryGetEntry(string id, out string data, out string reason)
         {
+            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+
             var request = new GetEntryRequest
             {
                 Id = id,
@@ -127,8 +133,11 @@
         /// Removes an entry from the Generic Logger Table.
         /// </summary>
         /// <param name="id">Id of entry to remove.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
         public void RemoveEntry(string id)
         {
+            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+
             var request = new RemoveEntryRequest
             {
                 Id = id
@@ -143,8 +152,11 @@
         /// <param name="id">Id of entry to remove.</param>
         /// <param name="reason">Reason why the entry could not be removed.</param>
         /// <returns>Value indicating if the entry was removed or not.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
         public bool TryRemoveEntry(string id, out string reason)
         {
+            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+
             var request = new RemoveEntryRequest
             {
                 Id = id
@@ -164,6 +176,7 @@
         /// </summary>
         /// <param name="id">Id of entry to add.</param>
         /// <param name="data">Data of entry to add.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
         public void AddEntry(string id, string data)
         {
             AddEntry(id, data, false);
@@ -175,8 +188,12 @@
         /// <param name="id">Id of the entry to add.</param>
         /// <param name="data">Data of entry to add.</param>
         /// <param name="allowOverwrite">Indicates if the data of existing entries can be overwritten.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
         public void AddEntry(string id, string data, bool allowOverwrite)
         {
+            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+
             var request = new AddEntryRequest
             {
                 Id = id,
@@ -194,6 +211,7 @@
         /// <param name="data">Data of entry to add.</param>
         /// <param name="reason">Reason why the entry could not be added.</param>
         /// <returns>Value indicating if the entry was added or not.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
         public bool TryAddEntry(string id, string data, out string reason)
         {
             return TryAddEntry(id, data, false, out reason);
@@ -207,8 +225,12 @@
         /// <param name="allowOverwrite">Indicates if the data of existing entries can be overwritten.</param>
         /// <param name="reason">Reason why the entry could not be added.</param>
         /// <returns>Value indicating if the entry was added or not.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
         public bool TryAddEntry(string id, string data, bool allowOverwrite, out string reason)
         {
+            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+
             var request = new AddEntryRequest
             {
                 Id = id,
@@ -230,8 +252,12 @@
         /// </summary>
         /// <param name="id">Id of the entry to update.</param>
         /// <param name="data">Data to be appended.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
         public void AppendEntry(string id, string data)
         {
+            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+
             var request = new AppendEntryRequest
             {
                 Id = id,
@@ -248,8 +274,12 @@
         /// <param name="data">Data to be appended.</param>
         /// <param name="reason">Reason why the data could not be appended.</param>
         /// <returns>Value indicating if the data was appended or not.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
         public bool TryAppendEntry(string id, string data, out string reason)
         {
+            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+
             var request = new AppendEntryRequest
             {
                 Id = id,
@@ -270,8 +300,12 @@
         /// </summary>
         /// <param name="id">Id of the entry to update.</param>
         /// <param name="data">Data to update the existing entry with.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
         public void UpdateEntry(string id, string data)
         {
+            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+
             var request = new UpdateEntryRequest
             {
                 Id = id,
@@ -288,8 +322,12 @@
         /// <param name="data">Data to update the existing entry with.</param>
         /// <param name="reason">Reason why the data not be updated.</param>
         /// <returns>Value indicating whether the data was updated or not.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
         public bool TryUpdateEntry(string id, string data, out string reason)
         {
+            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+
             var request = new UpdateEntryRequest
             {
                 Id = id,
