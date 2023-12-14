@@ -62,7 +62,8 @@
         /// Creates a new instance of a GenericLoggerTable.
         /// </summary>
         /// <param name="connection">Connection used to communicate with the Generic Logger Table element.</param>
-        /// <param name="element">Generic Logger Table element to be interacted with.</param>
+        /// <param name="agentId">The DataMiner agent id of the Generic Logger Table element.</param>
+        /// <param name="elementId">The element id of the Generic Logger Table element.</param>
         /// <exception cref="ArgumentNullException">Thrown when the provided connection or the element is null.</exception>
         /// <exception cref="ArgumentException">Thrown when the provided element is not using the Generic Logger Table protocol.</exception>
         public GenericLoggerTableElement(IConnection connection, int agentId, int elementId)
