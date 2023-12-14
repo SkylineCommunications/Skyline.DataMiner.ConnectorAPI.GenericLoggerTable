@@ -2,7 +2,6 @@
 {
     using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.Executors;
     using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.Messages;
-    using Skyline.DataMiner.Core.DataMinerSystem.Common;
     using Skyline.DataMiner.Core.InterAppCalls.Common.CallBulk;
     using Skyline.DataMiner.Core.InterAppCalls.Common.CallSingle;
     using Skyline.DataMiner.Core.InterAppCalls.Common.Shared;
@@ -31,8 +30,9 @@
         /// </summary>
         public const int InterAppReturn_ParameterId = 9000001;
 
-        private readonly ElementID elementId;
         private readonly IConnection connection;
+        private readonly int agentId;
+        private readonly int elementId;
 
         private readonly List<Type> knownTypes = new List<Type>
         {
@@ -65,10 +65,9 @@
         /// <param name="element">Generic Logger Table element to be interacted with.</param>
         /// <exception cref="ArgumentNullException">Thrown when the provided connection or the element is null.</exception>
         /// <exception cref="ArgumentException">Thrown when the provided element is not using the Generic Logger Table protocol.</exception>
-        public GenericLoggerTableElement(IConnection connection, ElementID elementId)
+        public GenericLoggerTableElement(IConnection connection, int agentId, int elementId)
         {
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
-            this.elementId = this.elementId ?? throw new ArgumentNullException(nameof(GenericLoggerTableElement.elementId));
         }
 
         /// <summary>
@@ -351,14 +350,14 @@
             responseMessage = default(T);
 
             var commands = InterAppCallFactory.CreateNew();
-            commands.ReturnAddress = new ReturnAddress(elementId.DataMinerID, elementId.EID, InterAppReturn_ParameterId);
+            commands.ReturnAddress = new ReturnAddress(agentId, elementId, InterAppReturn_ParameterId);
             commands.Messages.Add(message);
 
             try
             {
                 if (requiresResponse)
                 {
-                    var response = commands.Send(connection, elementId.DataMinerID, elementId.EID, InterAppReceive_ParameterId, Timeout, knownTypes).First();
+                    var response = commands.Send(connection, agentId, elementId, InterAppReceive_ParameterId, Timeout, knownTypes).First();
                     if (!response.TryExecute(null, null, executorMap, out _))
                     {
                         reason = $"Unable to execute response";
@@ -375,7 +374,7 @@
                 }
                 else
                 {
-                    commands.Send(connection, elementId.DataMinerID, elementId.EID, InterAppReceive_ParameterId, knownTypes);
+                    commands.Send(connection, agentId, elementId, InterAppReceive_ParameterId, knownTypes);
                 }
             }
             catch (Exception e)
