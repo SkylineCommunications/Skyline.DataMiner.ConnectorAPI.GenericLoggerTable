@@ -31,7 +31,7 @@
         /// </summary>
         public const int InterAppReturn_ParameterId = 9000001;
 
-        private readonly IDmsElement element;
+        private readonly ElementID elementId;
         private readonly IConnection connection;
 
         private readonly List<Type> knownTypes = new List<Type>
@@ -42,7 +42,11 @@
             typeof(GetEntryRequest),
             typeof(RemoveEntryRequest),
             typeof(UpdateEntryRequest),
-            typeof(GetEntryResult)
+            typeof(AddEntryResult),
+            typeof(AppendEntryResult),
+            typeof(GetEntryResult),
+            typeof(RemoveEntryResult),
+            typeof(UpdateEntryResult),
         };
 
         private readonly Dictionary<Type, Type> executorMap = new Dictionary<Type, Type>
@@ -61,12 +65,10 @@
         /// <param name="element">Generic Logger Table element to be interacted with.</param>
         /// <exception cref="ArgumentNullException">Thrown when the provided connection or the element is null.</exception>
         /// <exception cref="ArgumentException">Thrown when the provided element is not using the Generic Logger Table protocol.</exception>
-        public GenericLoggerTableElement(IConnection connection, IDmsElement element)
+        public GenericLoggerTableElement(IConnection connection, ElementID elementId)
         {
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
-            this.element = element ?? throw new ArgumentNullException(nameof(element));
-
-            if (!element.Protocol.Name.Equals(GenericLoggerTable_ProtocolName)) throw new ArgumentException($"Provided element is not a Generic Logger Table element");
+            this.elementId = this.elementId ?? throw new ArgumentNullException(nameof(GenericLoggerTableElement.elementId));
         }
 
         /// <summary>
@@ -349,14 +351,14 @@
             responseMessage = default(T);
 
             var commands = InterAppCallFactory.CreateNew();
-            commands.ReturnAddress = new ReturnAddress(element.DmsElementId.AgentId, element.DmsElementId.ElementId, InterAppReturn_ParameterId);
+            commands.ReturnAddress = new ReturnAddress(elementId.DataMinerID, elementId.EID, InterAppReturn_ParameterId);
             commands.Messages.Add(message);
 
             try
             {
                 if (requiresResponse)
                 {
-                    var response = commands.Send(connection, element.DmsElementId.AgentId, element.DmsElementId.ElementId, InterAppReceive_ParameterId, Timeout, knownTypes).First();
+                    var response = commands.Send(connection, elementId.DataMinerID, elementId.EID, InterAppReceive_ParameterId, Timeout, knownTypes).First();
                     if (!response.TryExecute(null, null, executorMap, out _))
                     {
                         reason = $"Unable to execute response";
@@ -373,7 +375,7 @@
                 }
                 else
                 {
-                    commands.Send(connection, element.DmsElementId.AgentId, element.DmsElementId.ElementId, InterAppReceive_ParameterId, knownTypes);
+                    commands.Send(connection, elementId.DataMinerID, elementId.EID, InterAppReceive_ParameterId, knownTypes);
                 }
             }
             catch (Exception e)
