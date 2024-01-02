@@ -34,7 +34,7 @@
         private readonly int agentId;
         private readonly int elementId;
 
-        private readonly List<Type> knownTypes = new List<Type>
+        private static readonly List<Type> knownTypes = new List<Type>
         {
             typeof(IInterAppCall),
             typeof(AddEntryRequest),
@@ -48,6 +48,11 @@
             typeof(RemoveEntryResult),
             typeof(UpdateEntryResult),
         };
+
+        /// <summary>
+        /// Defines list of known types.
+        /// </summary>
+        public static IEnumerable<Type> KnownTypes => knownTypes;
 
         private readonly Dictionary<Type, Type> executorMap = new Dictionary<Type, Type>
         {
