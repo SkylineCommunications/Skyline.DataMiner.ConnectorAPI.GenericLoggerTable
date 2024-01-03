@@ -8,6 +8,7 @@
     using Skyline.DataMiner.Net;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Represents a Generic Logger Table element in DataMiner and exposes methods to request and push data to and from its internal logger table.
@@ -392,27 +393,20 @@
                 {
                     commands.ReturnAddress = new ReturnAddress(agentId, elementId, InterAppReturn_ParameterId);
 
-                    bool success = true;
-                    foreach (var response in commands.Send(connection, agentId, elementId, InterAppReceive_ParameterId, Timeout, knownTypes))
+                    var response = commands.Send(connection, agentId, elementId, InterAppReceive_ParameterId, Timeout, knownTypes).First();
+                    if (!response.TryExecute(null, null, executorMap, out _))
                     {
-                        if (!response.TryExecute(null, null, executorMap, out _))
-                        {
-                            reason = $"Unable to execute response";
-                            success = false;
-                        }
-
-                        if (response is T castResponse)
-                        {
-                            responseMessage = castResponse;
-                        }
-                        else
-                        {
-                            reason = $"Received response is not of type {typeof(T)}";
-                            success = false;
-                        }
+                        reason = $"Unable to execute response";
+                        return false;
                     }
 
-                    return success;
+                    if (!(response is T castResponse))
+                    {
+                        reason = $"Received response is not of type {typeof(T)}";
+                        return false;
+                    }
+
+                    responseMessage = castResponse;
                 }
                 else
                 {
