@@ -8,7 +8,6 @@
     using Skyline.DataMiner.Net;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>
     /// Represents a Generic Logger Table element in DataMiner and exposes methods to request and push data to and from its internal logger table.
@@ -47,10 +46,12 @@
             typeof(GetEntryResult),
             typeof(RemoveEntryResult),
             typeof(UpdateEntryResult),
+            typeof(EntryExistsRequest),
+            typeof(EntryExistsResult)
         };
 
         /// <summary>
-        /// Defines list of known types.
+        /// List of known types. Used during InterApp communication.
         /// </summary>
         public static IEnumerable<Type> KnownTypes => knownTypes;
 
@@ -61,6 +62,7 @@
             { typeof(AddEntryResult), typeof(AddEntryResultExecutor) },
             { typeof(RemoveEntryResult), typeof(RemoveEntryResultExecutor) },
             { typeof(UpdateEntryResult), typeof(UpdateEntryResultExecutor) },
+            { typeof(EntryExistsResult), typeof(EntryExistsResultExecutor) }
         };
 
         /// <summary>
@@ -83,6 +85,30 @@
         /// Default: 5 seconds.
         /// </summary>
         public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Checks whether an entry with the given Id exists in the Generic Logger Table.
+        /// </summary>
+        /// <param name="id">Id of the entry to check.</param>
+        /// <returns>True if entry exists, else false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if we're unable to check if the entry exists.</exception>
+        public bool EntryExists(string id)
+        {
+            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+
+            var request = new EntryExistsRequest
+            {
+                Id = id,
+            };
+
+            if (!TrySendMessage<EntryExistsResult>(request, true, out string reason, out var response))
+            {
+                throw new InvalidOperationException($"Unable to check if entry with id {id} exists due to {reason}");
+            }
+
+            return response.Exists;
+        }
 
         /// <summary>
         /// Retrieves data from the Generic Logger Table.

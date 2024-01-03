@@ -1,6 +1,5 @@
 ﻿namespace Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.Messages
 {
-    using System;
     using Skyline.DataMiner.Core.InterAppCalls.Common.CallSingle;
 
     /// <summary>
