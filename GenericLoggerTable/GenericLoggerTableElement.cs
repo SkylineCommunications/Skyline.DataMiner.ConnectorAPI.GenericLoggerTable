@@ -358,27 +358,29 @@
             responseMessage = default(T);
 
             var commands = InterAppCallFactory.CreateNew();
-            commands.ReturnAddress = new ReturnAddress(agentId, elementId, InterAppReturn_ParameterId);
             commands.Messages.Add(message);
 
             try
             {
                 if (requiresResponse)
                 {
-                    var response = commands.Send(connection, agentId, elementId, InterAppReceive_ParameterId, Timeout, knownTypes).First();
-                    if (!response.TryExecute(null, null, executorMap, out _))
+                    commands.ReturnAddress = new ReturnAddress(agentId, elementId, InterAppReturn_ParameterId);
+                    foreach (var response in commands.Send(connection, agentId, elementId, InterAppReceive_ParameterId, Timeout, knownTypes))
                     {
-                        reason = $"Unable to execute response";
-                        return false;
-                    }
+                        if (!response.TryExecute(null, null, executorMap, out Message returnMessage))
+                        {
+                            reason = $"Unable to execute response";
+                            return false;
+                        }
 
-                    if (!(response is T castResponse))
-                    {
-                        reason = $"Received response is not of type {typeof(T)}";
-                        return false;
-                    }
+                        if (!(returnMessage is T castResponse))
+                        {
+                            reason = $"Received response is not of type {typeof(T)}";
+                            return false;
+                        }
 
-                    responseMessage = castResponse;
+                        responseMessage = castResponse;
+                    }
                 }
                 else
                 {
