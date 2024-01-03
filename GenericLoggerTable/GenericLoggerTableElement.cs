@@ -365,22 +365,28 @@
                 if (requiresResponse)
                 {
                     commands.ReturnAddress = new ReturnAddress(agentId, elementId, InterAppReturn_ParameterId);
+
+                    bool success = true;
                     foreach (var response in commands.Send(connection, agentId, elementId, InterAppReceive_ParameterId, Timeout, knownTypes))
                     {
-                        if (!response.TryExecute(null, null, executorMap, out Message returnMessage))
+                        if (!response.TryExecute(null, null, executorMap, out _))
                         {
                             reason = $"Unable to execute response";
-                            return false;
+                            success = false;
                         }
 
-                        if (!(returnMessage is T castResponse))
+                        if (response is T castResponse)
+                        {
+                            responseMessage = castResponse;
+                        }
+                        else
                         {
                             reason = $"Received response is not of type {typeof(T)}";
-                            return false;
+                            success = false;
                         }
-
-                        responseMessage = castResponse;
                     }
+
+                    return success;
                 }
                 else
                 {
