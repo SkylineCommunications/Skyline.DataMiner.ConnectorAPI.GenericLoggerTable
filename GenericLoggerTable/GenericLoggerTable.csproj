@@ -2,7 +2,6 @@
 	<PropertyGroup>
 		<TargetFramework>net462</TargetFramework>
 		<PlatformTarget>x86</PlatformTarget>
-		<CodeAnalysisRuleSet>InteractiveAutomationToolkit.ruleset</CodeAnalysisRuleSet>
 		<AssemblyName>Skyline.DataMiner.ConnectorAPI.GenericLoggerTable</AssemblyName>
 		<RootNamespace>Skyline.DataMiner.ConnectorAPI.GenericLoggerTable</RootNamespace>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -28,6 +27,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Skyline.DataMiner.Core.InterAppCalls.Common" Version="1.0.0.2" />
+		<PackageReference Include="Skyline.DataMiner.Core.InterAppCalls.Common" Version="1.0.0.2" />
 	</ItemGroup>
 </Project>

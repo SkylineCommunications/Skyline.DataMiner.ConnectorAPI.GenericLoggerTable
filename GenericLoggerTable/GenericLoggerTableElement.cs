@@ -67,7 +67,7 @@
         };
 
         /// <summary>
-        /// Creates a new instance of a GenericLoggerTable.
+        /// Initializes a new instance of the <see cref="GenericLoggerTableElement"/> class.
         /// </summary>
         /// <param name="connection">Connection used to communicate with the Generic Logger Table element.</param>
         /// <param name="agentId">The DataMiner agent id of the Generic Logger Table element.</param>
