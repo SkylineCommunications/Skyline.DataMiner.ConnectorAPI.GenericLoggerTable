@@ -2,6 +2,7 @@
 {
     using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.Executors;
     using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.Messages;
+    using Skyline.DataMiner.Core.DataMinerSystem.Common;
     using Skyline.DataMiner.Core.InterAppCalls.Common.CallBulk;
     using Skyline.DataMiner.Core.InterAppCalls.Common.CallSingle;
     using Skyline.DataMiner.Core.InterAppCalls.Common.Shared;
@@ -31,8 +32,7 @@
         public const int InterAppReturn_ParameterId = 9000001;
 
         private readonly IConnection connection;
-        private readonly int agentId;
-        private readonly int elementId;
+        private readonly IDmsElement element;
 
         private static readonly List<Type> knownTypes = new List<Type>
         {
@@ -69,16 +69,13 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="GenericLoggerTableElement"/> class.
         /// </summary>
+        /// <param name="element">Generic Logger Table element.</param>
         /// <param name="connection">Connection used to communicate with the Generic Logger Table element.</param>
-        /// <param name="agentId">The DataMiner agent id of the Generic Logger Table element.</param>
-        /// <param name="elementId">The element id of the Generic Logger Table element.</param>
         /// <exception cref="ArgumentNullException">Thrown when the provided connection or the element is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when the provided element is not using the Generic Logger Table protocol.</exception>
-        public GenericLoggerTableElement(IConnection connection, int agentId, int elementId)
+        public GenericLoggerTableElement(IDmsElement element, IConnection connection)
         {
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
-            this.agentId = agentId;
-            this.elementId = elementId;
+            this.element = element ?? throw new ArgumentNullException(nameof(element));
         }
 
         /// <summary>
@@ -391,9 +388,9 @@
             {
                 if (requiresResponse)
                 {
-                    commands.ReturnAddress = new ReturnAddress(agentId, elementId, InterAppReturn_ParameterId);
+                    commands.ReturnAddress = new ReturnAddress(element.AgentId, element.Id, InterAppReturn_ParameterId);
 
-                    var response = commands.Send(connection, agentId, elementId, InterAppReceive_ParameterId, Timeout, knownTypes).First();
+                    var response = commands.Send(connection, element.AgentId, element.Id, InterAppReceive_ParameterId, Timeout, knownTypes).First();
                     if (!response.TryExecute(null, null, executorMap, out _))
                     {
                         reason = $"Unable to execute response";
@@ -410,7 +407,7 @@
                 }
                 else
                 {
-                    commands.Send(connection, agentId, elementId, InterAppReceive_ParameterId, knownTypes);
+                    commands.Send(connection, element.AgentId, element.Id, InterAppReceive_ParameterId, knownTypes);
                 }
             }
             catch (Exception e)
