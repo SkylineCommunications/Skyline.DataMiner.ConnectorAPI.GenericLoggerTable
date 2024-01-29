@@ -1,6 +1,5 @@
 ﻿namespace Skyline.DataMiner.ConnectorAPI.GenericLoggerTable
 {
-    using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.Executors;
     using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.Messages;
     using Skyline.DataMiner.Core.DataMinerSystem.Common;
     using Skyline.DataMiner.Core.InterAppCalls.Common.CallBulk;
@@ -55,16 +54,6 @@
         /// List of known types. Used during InterApp communication.
         /// </summary>
         public static IEnumerable<Type> KnownTypes => knownTypes;
-
-        private readonly Dictionary<Type, Type> executorMap = new Dictionary<Type, Type>
-        {
-            { typeof(GetEntryResult), typeof(GetEntryResultExecutor) },
-            { typeof(AppendEntryResult), typeof(AppendEntryResultExecutor) },
-            { typeof(AddEntryResult), typeof(AddEntryResultExecutor) },
-            { typeof(RemoveEntryResult), typeof(RemoveEntryResultExecutor) },
-            { typeof(UpdateEntryResult), typeof(UpdateEntryResultExecutor) },
-            { typeof(EntryExistsResult), typeof(EntryExistsResultExecutor) }
-        };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GenericLoggerTableElement"/> class.
@@ -391,12 +380,6 @@
                     commands.ReturnAddress = new ReturnAddress(element.AgentId, element.Id, InterAppReturn_ParameterId);
 
                     var response = commands.Send(connection, element.AgentId, element.Id, InterAppReceive_ParameterId, Timeout, knownTypes).First();
-                    if (!response.TryExecute(null, null, executorMap, out _))
-                    {
-                        reason = $"Unable to execute response";
-                        return false;
-                    }
-
                     if (!(response is T castResponse))
                     {
                         reason = $"Received response is not of type {typeof(T)}";
