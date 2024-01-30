@@ -31,7 +31,8 @@
         public const int InterAppReturn_ParameterId = 9000001;
 
         private readonly IConnection connection;
-        private readonly IDmsElement element;
+        private readonly int agentId;
+        private readonly int elementId;
 
         private static readonly List<Type> knownTypes = new List<Type>
         {
@@ -58,13 +59,15 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="GenericLoggerTableElement"/> class.
         /// </summary>
-        /// <param name="element">Generic Logger Table element.</param>
         /// <param name="connection">Connection used to communicate with the Generic Logger Table element.</param>
+        /// <param name="agentId">ID of the agent on which the Generic Logger Table element is hosted.</param>
+        /// <param name="elementId">ID of the Generic Logger Table element.</param>
         /// <exception cref="ArgumentNullException">Thrown when the provided connection or the element is null.</exception>
-        public GenericLoggerTableElement(IDmsElement element, IConnection connection)
+        public GenericLoggerTableElement(Connection connection, int agentId, int elementId)
         {
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
-            this.element = element ?? throw new ArgumentNullException(nameof(element));
+            this.agentId = agentId < 0 ? throw new ArgumentOutOfRangeException(nameof(agentId), "Agent ID cannot be negative") : agentId;
+            this.elementId = elementId < 0 ? throw new ArgumentOutOfRangeException(nameof(elementId), "Element ID cannot be negative") : elementId;
         }
 
         /// <summary>
@@ -377,9 +380,9 @@
             {
                 if (requiresResponse)
                 {
-                    commands.ReturnAddress = new ReturnAddress(element.AgentId, element.Id, InterAppReturn_ParameterId);
+                    commands.ReturnAddress = new ReturnAddress(agentId, elementId, InterAppReturn_ParameterId);
 
-                    var response = commands.Send(connection, element.AgentId, element.Id, InterAppReceive_ParameterId, Timeout, knownTypes).First();
+                    var response = commands.Send(connection, agentId, elementId, InterAppReceive_ParameterId, Timeout, knownTypes).First();
                     if (!(response is T castResponse))
                     {
                         reason = $"Received response is not of type {typeof(T)}";
@@ -390,7 +393,7 @@
                 }
                 else
                 {
-                    commands.Send(connection, element.AgentId, element.Id, InterAppReceive_ParameterId, knownTypes);
+                    commands.Send(connection, agentId, elementId, InterAppReceive_ParameterId, knownTypes);
                 }
             }
             catch (Exception e)
