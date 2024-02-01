@@ -13,7 +13,7 @@
 	using System.Linq;
 
 	/// <summary>
-	/// Represents a Generic Logger Table element in DataMiner and exposes methods to request and push data to and from its internal logger table.
+	/// Represents a Generic Logger Table element in DataMiner and exposes methods to request and push data to and from its internal logger Table element.
 	/// </summary>
 	public class GenericLoggerTableElement
     {
@@ -84,14 +84,14 @@
         public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
 
 		/// <summary>
-		/// True if request should be handled by Generic Logger Table driver.
+		/// True if request should be handled by Generic Logger Table element.
 		/// Default: false.
 		/// </summary>
 		public bool SendRequest { get; set; } = false;
 
 		/// <summary>
 		/// Checks whether an entry with the <paramref name="id"/> exists in database.
-		/// If <see cref="SendRequest"/> equals true, check will be handled by Generic Logger Table.
+		/// If <see cref="SendRequest"/> equals true, check will be handled by Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of the entry to check.</param>
 		/// <returns>True if entry exists, else false.</returns>
@@ -107,7 +107,7 @@
 		/// </summary>
 		/// <param name="id">Id of the entry to check.</param>
 		/// <param name="sendRequest">
-		/// True if check should be handled by Generic Logger Table driver. 
+		/// True if check should be handled by Generic Logger Table element. 
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <returns>True if entry exists, else false.</returns>
@@ -122,7 +122,7 @@
 		}
 
 		/// <summary>
-		/// Checks whether an entry with the <paramref name="id"/> exists in the Generic Logger Table.
+		/// Checks whether an entry with the <paramref name="id"/> exists in the Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of the entry to check.</param>
 		/// <returns>True if entry exists, else false.</returns>
@@ -167,7 +167,7 @@
 
 		/// <summary>
 		/// Retrieves data from database based on <paramref name="id"/>.
-		/// If <see cref="SendRequest"/> equals true, retrieval will be handled by Generic Logger Table.
+		/// If <see cref="SendRequest"/> equals true, retrieval will be handled by Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of the entry to retrieve.</param>
 		/// <returns>Data contained in the requested entry.</returns>
@@ -183,7 +183,7 @@
 		/// </summary>
 		/// <param name="id">Id of the entry to retrieve.</param>
 		/// <param name="sendRequest">
-		/// True if retrieval should be handled by Generic Logger Table driver. 
+		/// True if retrieval should be handled by Generic Logger Table element. 
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <returns>Data contained in the requested entry.</returns>
@@ -252,7 +252,7 @@
 
 		/// <summary>
 		/// Attempts to retrieve data from database based on <paramref name="id"/>.
-		/// If <see cref="SendRequest"/> equals true, retrieval will be attempted by Generic Logger Table.
+		/// If <see cref="SendRequest"/> equals true, retrieval will be attempted by Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of entry to retrieve.</param>
 		/// <param name="data">Data contained in the requested entry.</param>
@@ -271,7 +271,7 @@
 		/// <param name="data">Data contained in the requested entry.</param>
 		/// <param name="reason">Reason if data could not be retrieved.</param>
 		/// <param name="sendRequest">
-		/// True if retrieval should be attempted by Generic Logger Table driver.
+		/// True if retrieval should be attempted by Generic Logger Table element.
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <returns>True if data was retrieved, else false.</returns>
@@ -333,7 +333,7 @@
 
 		/// <summary>
 		/// Removes an entry from database based on <paramref name="id"/>.
-		/// If <see cref="SendRequest"/> equals true, removal will be handled by Generic Logger Table.
+		/// If <see cref="SendRequest"/> equals true, removal will be handled by Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of entry to remove.</param>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
@@ -347,7 +347,7 @@
 		/// </summary>
 		/// <param name="id">Id of entry to remove.</param>
 		/// <param name="sendRequest">
-		/// True if removal should be handled by Generic Logger Table driver.
+		/// True if removal should be handled by Generic Logger Table element.
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
@@ -389,7 +389,7 @@
 
 		/// <summary>
 		/// Attempts to remove an entry from database based on <paramref name="id"/>.
-		/// If <see cref="SendRequest"/> equals true, removal will be attempted by Generic Logger Table.
+		/// If <see cref="SendRequest"/> equals true, removal will be attempted by Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of entry to remove.</param>
 		/// <param name="reason">Reason why the entry could not be removed.</param>
@@ -406,7 +406,7 @@
 		/// <param name="id">Id of entry to remove.</param>
 		/// <param name="reason">Reason why the entry could not be removed.</param>
 		/// <param name="sendRequest">
-		/// True if removal should be attempted by Generic Logger Table driver.
+		/// True if removal should be attempted by Generic Logger Table element.
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <returns>True if entry was removed, else false.</returns>
@@ -462,7 +462,7 @@
 
 		/// <summary>
 		/// Adds a new entry to database.
-		/// If <see cref="SendRequest"/> equals true, add will be handled by Generic Logger Table.
+		/// If <see cref="SendRequest"/> equals true, add will be handled by Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of entry to add.</param>
 		/// <param name="data">Data of entry to add.</param>
@@ -480,7 +480,7 @@
 		/// <param name="data">Data of entry to add.</param>
 		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
 		/// <param name="sendRequest">
-		/// True if add should be handled by Generic Logger Table driver.
+		/// True if add should be handled by Generic Logger Table element.
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
@@ -494,7 +494,7 @@
         }
 
 		/// <summary>
-		/// Adds a new entry to the Generic Logger Table.
+		/// Adds a new entry to the Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of the entry to add.</param>
 		/// <param name="data">Data of entry to add.</param>
@@ -541,7 +541,7 @@
 
 		/// <summary>
 		/// Attempts to add a new entry to database.
-		/// If <see cref="SendRequest"/> equals true, add will be attempted by Generic Logger Table.
+		/// If <see cref="SendRequest"/> equals true, add will be attempted by Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of the entry to add.</param>
 		/// <param name="data">Data of entry to add.</param>
@@ -562,7 +562,7 @@
 		/// <param name="reason">Reason why the entry could not be added.</param>
 		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
 		/// <param name="sendRequest">
-		/// True if add should be attempted by Generic Logger Table driver.
+		/// True if add should be attempted by Generic Logger Table element.
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <returns>True if entry was added, else false.</returns>
@@ -584,7 +584,7 @@
 		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
 		/// <param name="reason">Reason why the entry could not be added.</param>
 		/// <param name="sendRequest">
-		/// True if add should be attempted by Generic Logger Table driver.
+		/// True if add should be attempted by Generic Logger Table element.
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <returns>True if entry was added, else false.</returns>
@@ -595,7 +595,7 @@
 		}
 
 		/// <summary>
-		/// Attempts to add a new entry to the Generic Logger Table.
+		/// Attempts to add a new entry to the Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of the entry to add.</param>
 		/// <param name="data">Data of entry to add.</param>
@@ -659,7 +659,7 @@
 
 		/// <summary>
 		/// Appends the provided data to an existing entry in database based on <paramref name="id"/>.
-		/// If <see cref="SendRequest"/> equals true, append will be handled by Generic Logger Table.
+		/// If <see cref="SendRequest"/> equals true, append will be handled by Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to be appended.</param>
@@ -675,7 +675,7 @@
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to be appended.</param>
 		/// <param name="sendRequest">
-		/// True if append should be handled by Generic Logger Table driver.
+		/// True if append should be handled by Generic Logger Table element.
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
@@ -723,7 +723,7 @@
 
 		/// <summary>
 		/// Attempts to append the provided data to an existing entry in database based on <paramref name="id"/>.
-		/// If <see cref="SendRequest"/> equals true, append will be attempted by Generic Logger Table.
+		/// If <see cref="SendRequest"/> equals true, append will be attempted by Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to be appended.</param>
@@ -742,7 +742,7 @@
 		/// <param name="data">Data to be appended.</param>
 		/// <param name="reason">Reason why the data could not be appended.</param>
 		/// <param name="sendRequest">
-		/// True if append should be attempted by Generic Logger Table driver.
+		/// True if append should be attempted by Generic Logger Table element.
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <returns>True if entry was appended, else false.</returns>
@@ -807,7 +807,7 @@
 
 		/// <summary>
 		/// Overwrites the data of an existing entry in database based on <paramref name="id"/>.
-		/// If <see cref="SendRequest"/> equals true, update will be handled by Generic Logger Table.
+		/// If <see cref="SendRequest"/> equals true, update will be handled by Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to update the existing entry with.</param>
@@ -823,7 +823,7 @@
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to update the existing entry with.</param>
 		/// <param name="sendRequest">
-		/// True if update should be handled by Generic Logger Table driver.
+		/// True if update should be handled by Generic Logger Table element.
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
@@ -869,7 +869,7 @@
 
 		/// <summary>
 		/// Attempts to overwrite the data of an existing entry in database based on <paramref name="id"/>.
-		/// If <see cref="SendRequest"/> equals true, update will be attempted by Generic Logger Table.
+		/// If <see cref="SendRequest"/> equals true, update will be attempted by Generic Logger Table element.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to update the existing entry with.</param>
@@ -888,7 +888,7 @@
 		/// <param name="data">Data to update the existing entry with.</param>
 		/// <param name="reason">Reason why the data was not be updated.</param>
 		/// <param name="sendRequest">
-		/// True if update should be attempted by Generic Logger Table driver.
+		/// True if update should be attempted by Generic Logger Table element.
 		/// This value overrides <see cref="SendRequest"/>.
 		/// </param>
 		/// <returns>True if entry was updated, else false.</returns>
