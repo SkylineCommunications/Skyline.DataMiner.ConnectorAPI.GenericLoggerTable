@@ -199,7 +199,7 @@
 
             if (!String.IsNullOrEmpty(response.Error))
             {
-				throw new InvalidOperationException($"Unable to check if entry with id {id} exists due to {response.Error}");
+				throw new InvalidOperationException($"Unable to get entry with id {id} due to {response.Error}");
 			}
 
 			if (!response.Values.Sa.Any())
