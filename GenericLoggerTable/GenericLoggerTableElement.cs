@@ -84,7 +84,7 @@
         public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
 
 		/// <summary>
-		/// True if check should be handled by Generic Logger Table driver.
+		/// True if request should be handled by Generic Logger Table driver.
 		/// Default: false.
 		/// </summary>
 		public bool SendRequest { get; set; } = false;
