@@ -1,19 +1,21 @@
 ﻿namespace Skyline.DataMiner.ConnectorAPI.GenericLoggerTable
 {
     using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.Messages;
-    using Skyline.DataMiner.Core.DataMinerSystem.Common;
-    using Skyline.DataMiner.Core.InterAppCalls.Common.CallBulk;
+	using Skyline.DataMiner.Core.DataMinerSystem.Common;
+	using Skyline.DataMiner.Core.InterAppCalls.Common.CallBulk;
     using Skyline.DataMiner.Core.InterAppCalls.Common.CallSingle;
     using Skyline.DataMiner.Core.InterAppCalls.Common.Shared;
     using Skyline.DataMiner.Net;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
+	using Skyline.DataMiner.Net.Messages;
+	using System;
+	using System.Collections.Generic;
+	using System.Globalization;
+	using System.Linq;
 
-    /// <summary>
-    /// Represents a Generic Logger Table element in DataMiner and exposes methods to request and push data to and from its internal logger table.
-    /// </summary>
-    public class GenericLoggerTableElement
+	/// <summary>
+	/// Represents a Generic Logger Table element in DataMiner and exposes methods to request and push data to and from its internal logger Table element.
+	/// </summary>
+	public class GenericLoggerTableElement
     {
         /// <summary>
         /// Name of the Generic Logger Table protocol.
@@ -33,6 +35,8 @@
         private readonly IConnection connection;
         private readonly int agentId;
         private readonly int elementId;
+        private readonly IDms dms;
+        private readonly string tableName;
 
         private static readonly List<Type> knownTypes = new List<Type>
         {
@@ -69,6 +73,8 @@
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
             this.agentId = agentId < 0 ? throw new ArgumentOutOfRangeException(nameof(agentId), "Agent ID cannot be negative") : agentId;
             this.elementId = elementId < 0 ? throw new ArgumentOutOfRangeException(nameof(elementId), "Element ID cannot be negative") : elementId;
+            this.dms = connection.GetDms();
+            this.tableName = GetTableName();
         }
 
         /// <summary>
@@ -77,17 +83,52 @@
         /// </summary>
         public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
 
-        /// <summary>
-        /// Checks whether an entry with the given Id exists in the Generic Logger Table.
-        /// </summary>
-        /// <param name="id">Id of the entry to check.</param>
-        /// <returns>True if entry exists, else false.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
-        /// <exception cref="InvalidOperationException">Thrown if we're unable to check if the entry exists.</exception>
-        public bool EntryExists(string id)
-        {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+		/// <summary>
+		/// True if request should be handled by Generic Logger Table element.
+		/// Default: false.
+		/// </summary>
+		public bool SendRequest { get; set; } = false;
 
+		/// <summary>
+		/// Checks whether an entry with the <paramref name="id"/> exists in database.
+		/// If <see cref="SendRequest"/> equals true, check will be handled by Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of the entry to check.</param>
+		/// <returns>True if entry exists, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		/// <exception cref="InvalidOperationException">Thrown if we're unable to check if the entry exists.</exception>
+		public bool EntryExists(string id)
+		{
+			return EntryExists(id, SendRequest);
+		}
+
+		/// <summary>
+		/// Checks whether an entry with the <paramref name="id"/> exists in database.
+		/// </summary>
+		/// <param name="id">Id of the entry to check.</param>
+		/// <param name="sendRequest">
+		/// True if check should be handled by Generic Logger Table element. 
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if entry exists, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		/// <exception cref="InvalidOperationException">Thrown if we're unable to check if the entry exists.</exception>
+		public bool EntryExists(string id, bool sendRequest)
+		{
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+
+			if (sendRequest) { return EntryExistsExternal(id); }
+			else { return EntryExistsInternal(id); }
+		}
+
+		/// <summary>
+		/// Checks whether an entry with the <paramref name="id"/> exists in the Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of the entry to check.</param>
+		/// <returns>True if entry exists, else false.</returns>
+		/// <exception cref="InvalidOperationException">Thrown if we're unable to check if the entry exists.</exception>
+		private bool EntryExistsExternal(string id)
+        {
             var request = new EntryExistsRequest
             {
                 Id = id,
@@ -101,17 +142,69 @@
             return response.Exists;
         }
 
-        /// <summary>
-        /// Retrieves data from the Generic Logger Table.
-        /// </summary>
-        /// <param name="id">Id of the entry to retrieve.</param>
-        /// <returns>Data contained in the requested entry.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if we're unable to retrieve the requested data.</exception>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
-        public string GetEntry(string id)
-        {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+		/// <summary>
+		/// Checks whether an entry with the <paramref name="id"/> exists in database.
+		/// </summary>
+		/// <param name="id">Id of the entry to check.</param>
+		/// <returns>True if entry exists, else false.</returns>
+		/// <exception cref="InvalidOperationException">Thrown if we're unable to check if the entry exists.</exception>
+		private bool EntryExistsInternal(string id)
+		{
+            var query = $"SELECT id FROM {tableName} WHERE id='{id}' LIMIT 1";
 
+#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
+            var message = new ExecuteDatabaseQueryMessage(query, agentId);
+#pragma warning restore CS0612
+            var response = (ExecuteDatabaseQueryResponseMessage)dms.Communication.SendSingleResponseMessage(message);
+
+            if (!String.IsNullOrEmpty(response.Error))
+			{
+				throw new InvalidOperationException($"Unable to check if entry with id {id} exists due to {response.Error}");
+			}
+
+			return response.Values.Sa.Any();
+        }
+
+		/// <summary>
+		/// Retrieves data from database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, retrieval will be handled by Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of the entry to retrieve.</param>
+		/// <returns>Data contained in the requested entry.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		/// <exception cref="InvalidOperationException">Thrown if we're unable to retrieve the requested data.</exception>
+		public string GetEntry(string id)
+		{ 
+			return GetEntry(id, SendRequest);
+		}
+
+		/// <summary>
+		/// Retrieves data from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to retrieve.</param>
+		/// <param name="sendRequest">
+		/// True if retrieval should be handled by Generic Logger Table element. 
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>Data contained in the requested entry.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		/// <exception cref="InvalidOperationException">Thrown if we're unable to retrieve the requested data.</exception>
+		public string GetEntry(string id, bool sendRequest)
+        {
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+
+			if (sendRequest) { return GetEntryExternal(id); }
+			else { return GetEntryInternal(id); }
+		}
+
+		/// <summary>
+		/// Retrieves data from the Generic Logger Table based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to retrieve.</param>
+		/// <returns>Data contained in the requested entry.</returns>
+		/// <exception cref="InvalidOperationException">Thrown if we're unable to retrieve the requested data.</exception>
+		private string GetEntryExternal(string id)
+        {
             var request = new GetEntryRequest
             {
                 Id = id,
@@ -127,18 +220,79 @@
             return response.Data;
         }
 
-        /// <summary>
-        /// Retrieves data from the Generic Logger Table.
-        /// </summary>
-        /// <param name="id">Id of entry to retrieve.</param>
-        /// <param name="data">Data contained in the requested entry.</param>
-        /// <param name="reason">Reason if data could not be retrieved.</param>
-        /// <returns>Value indicating if data could be retrieved or not.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
-        public bool TryGetEntry(string id, out string data, out string reason)
+		/// <summary>
+		/// Retrieves data from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to retrieve.</param>
+		/// <returns>Data contained in the requested entry.</returns>
+		/// <exception cref="InvalidOperationException">Thrown if we're unable to retrieve the requested data.</exception>
+		private string GetEntryInternal(string id)
         {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+			var query = $"SELECT dt FROM {tableName} WHERE id='{id}' LIMIT 1";
 
+#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
+			var message = new ExecuteDatabaseQueryMessage(query, agentId);
+#pragma warning restore CS0612
+			var response = (ExecuteDatabaseQueryResponseMessage)dms.Communication.SendSingleResponseMessage(message);
+
+            if (!String.IsNullOrEmpty(response.Error))
+            {
+				throw new InvalidOperationException($"Unable to get entry with id {id} due to {response.Error}");
+			}
+
+			if (!response.Values.Sa.Any())
+            {
+				throw new InvalidOperationException($"Entry with id {id} doesn't exist in the table");
+			}
+
+			string data = response.Values.Sa.FirstOrDefault();
+
+            return data;
+		}
+
+		/// <summary>
+		/// Attempts to retrieve data from database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, retrieval will be attempted by Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of entry to retrieve.</param>
+		/// <param name="data">Data contained in the requested entry.</param>
+		/// <param name="reason">Reason if data could not be retrieved.</param>
+		/// <returns>True if data was retrieved, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		public bool TryGetEntry(string id, out string data, out string reason)
+		{
+			return TryGetEntry(id, out data, out reason, SendRequest);
+		}
+
+		/// <summary>
+		/// Attempts to retrieve data from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to retrieve.</param>
+		/// <param name="data">Data contained in the requested entry.</param>
+		/// <param name="reason">Reason if data could not be retrieved.</param>
+		/// <param name="sendRequest">
+		/// True if retrieval should be attempted by Generic Logger Table element.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if data was retrieved, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		public bool TryGetEntry(string id, out string data, out string reason, bool sendRequest)
+        {
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+
+			if (sendRequest) { return TryGetEntryExternal(id, out data, out reason); }
+			else { return TryGetEntryInternal(id, out data, out reason); }
+		}
+
+		/// <summary>
+		/// Attempts to retrieve data from the Generic Logger Table based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to retrieve.</param>
+		/// <param name="data">Data contained in the requested entry.</param>
+		/// <param name="reason">Reason if data could not be retrieved.</param>
+		/// <returns>True if data was retrieved, else false.</returns>
+		private bool TryGetEntryExternal(string id, out string data, out string reason)
+        {
             var request = new GetEntryRequest
             {
                 Id = id,
@@ -155,15 +309,62 @@
             return response.Success;
         }
 
-        /// <summary>
-        /// Removes an entry from the Generic Logger Table.
-        /// </summary>
-        /// <param name="id">Id of entry to remove.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
-        public void RemoveEntry(string id)
+		/// <summary>
+		/// Attempts to retrieve data from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to retrieve.</param>
+		/// <param name="data">Data contained in the requested entry.</param>
+		/// <param name="reason">Reason if data could not be retrieved.</param>
+		/// <returns>True if data was retrieved, else false.</returns>
+		private bool TryGetEntryInternal(string id, out string data, out string reason)
         {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+			var query = $"SELECT dt FROM {tableName} WHERE id='{id}' LIMIT 1";
 
+#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
+			var message = new ExecuteDatabaseQueryMessage(query, agentId);
+#pragma warning restore CS0612
+			var response = (ExecuteDatabaseQueryResponseMessage)dms.Communication.SendSingleResponseMessage(message);
+
+			bool entryExists = response.Values.Sa.Any();
+			data = response.Values.Sa.FirstOrDefault();
+			reason = entryExists ? response.Error : "Entry doesn't exist in the table";
+			return entryExists && String.IsNullOrWhiteSpace(response.Error);
+		}
+
+		/// <summary>
+		/// Removes an entry from database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, removal will be handled by Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		public void RemoveEntry(string id)
+		{
+			RemoveEntry(id, SendRequest);
+		}
+
+		/// <summary>
+		/// Removes an entry from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		/// <param name="sendRequest">
+		/// True if removal should be handled by Generic Logger Table element.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		public void RemoveEntry(string id, bool sendRequest)
+        {
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+
+			if (sendRequest) { RemoveEntryExternal(id); }
+			else { RemoveEntryInternal(id); }
+		}
+
+		/// <summary>
+		/// Removes an entry from the Generic Logger Table based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		private void RemoveEntryExternal(string id)
+        {
             var request = new RemoveEntryRequest
             {
                 Id = id
@@ -172,17 +373,60 @@
             TrySendMessage<RemoveEntryResult>(request, false, out _, out _);
         }
 
-        /// <summary>
-        /// Removes an entry from the Generic Logger Table.
-        /// </summary>
-        /// <param name="id">Id of entry to remove.</param>
-        /// <param name="reason">Reason why the entry could not be removed.</param>
-        /// <returns>Value indicating if the entry was removed or not.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
-        public bool TryRemoveEntry(string id, out string reason)
+		/// <summary>
+		/// Removes an entry from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		private void RemoveEntryInternal(string id)
         {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+			string query = $"DELETE FROM {tableName} WHERE id = '{id}'";
 
+#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
+			var message = new ExecuteDatabaseQueryMessage(query, agentId);
+#pragma warning restore CS0612
+			dms.Communication.SendSingleResponseMessage(message);
+		}
+
+		/// <summary>
+		/// Attempts to remove an entry from database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, removal will be attempted by Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		/// <param name="reason">Reason why the entry could not be removed.</param>
+		/// <returns>True if entry was removed, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		public bool TryRemoveEntry(string id, out string reason)
+		{
+			return TryRemoveEntry(id, out reason, SendRequest);
+		}
+
+		/// <summary>
+		/// Attempts to remove an entry from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		/// <param name="reason">Reason why the entry could not be removed.</param>
+		/// <param name="sendRequest">
+		/// True if removal should be attempted by Generic Logger Table element.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if entry was removed, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		public bool TryRemoveEntry(string id, out string reason, bool sendRequest)
+        {
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+
+			if (sendRequest) { return TryRemoveEntryExternal(id, out reason); }
+			else { return TryRemoveEntryInternal(id, out reason); }
+		}
+
+		/// <summary>
+		/// Attempts to remove an entry from the Generic Logger Table based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		/// <param name="reason">Reason why the entry could not be removed.</param>
+		/// <returns>True if entry was removed, else false.</returns>
+		private bool TryRemoveEntryExternal(string id, out string reason)
+        {
             var request = new RemoveEntryRequest
             {
                 Id = id
@@ -197,29 +441,66 @@
             return response.Success;
         }
 
-        /// <summary>
-        /// Adds a new entry to the Generic Logger Table.
-        /// </summary>
-        /// <param name="id">Id of entry to add.</param>
-        /// <param name="data">Data of entry to add.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-        public void AddEntry(string id, string data)
+		/// <summary>
+		/// Attempts to remove an entry from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		/// <param name="reason">Reason why the entry could not be removed.</param>
+		/// <returns>True if entry was removed, else false.</returns>
+		private bool TryRemoveEntryInternal(string id, out string reason)
         {
-            AddEntry(id, data, false);
+			string query = $"DELETE FROM {tableName} WHERE id = '{id}'";
+
+#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
+			var message = new ExecuteDatabaseQueryMessage(query, agentId);
+#pragma warning restore CS0612
+			var response = (ExecuteDatabaseQueryResponseMessage)dms.Communication.SendSingleResponseMessage(message);
+
+			reason = response.Error;
+			return String.IsNullOrWhiteSpace(reason);
+		}
+
+		/// <summary>
+		/// Adds a new entry to database.
+		/// If <see cref="SendRequest"/> equals true, add will be handled by Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of entry to add.</param>
+		/// <param name="data">Data of entry to add.</param>
+		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public void AddEntry(string id, string data, bool allowOverwrite = false)
+		{
+			AddEntry(id, data, allowOverwrite, SendRequest);
+		}
+
+		/// <summary>
+		/// Adds a new entry to database.
+		/// </summary>
+		/// <param name="id">Id of entry to add.</param>
+		/// <param name="data">Data of entry to add.</param>
+		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
+		/// <param name="sendRequest">
+		/// True if add should be handled by Generic Logger Table element.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public void AddEntry(string id, string data, bool allowOverwrite, bool sendRequest)
+        {
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
+
+			if (sendRequest) { AddEntryExternal(id, data, allowOverwrite); }
+			else { AddEntryInternal(id, data, allowOverwrite); }
         }
 
-        /// <summary>
-        /// Adds a new entry to the Generic Logger Table.
-        /// </summary>
-        /// <param name="id">Id of the entry to add.</param>
-        /// <param name="data">Data of entry to add.</param>
-        /// <param name="allowOverwrite">Indicates if the data of existing entries can be overwritten.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-        public void AddEntry(string id, string data, bool allowOverwrite)
+		/// <summary>
+		/// Adds a new entry to the Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of the entry to add.</param>
+		/// <param name="data">Data of entry to add.</param>
+		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
+		private void AddEntryExternal(string id, string data, bool allowOverwrite)
         {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-            if (data == null) throw new ArgumentNullException(nameof(data));
-
             var request = new AddEntryRequest
             {
                 Id = id,
@@ -230,33 +511,99 @@
             TrySendMessage<AddEntryResult>(request, false, out _, out _);
         }
 
-        /// <summary>
-        /// Add a new entry to the Generic Logger Table.
-        /// </summary>
-        /// <param name="id">Id of the entry to add.</param>
-        /// <param name="data">Data of entry to add.</param>
-        /// <param name="reason">Reason why the entry could not be added.</param>
-        /// <returns>Value indicating if the entry was added or not.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-        public bool TryAddEntry(string id, string data, out string reason)
+		/// <summary>
+		/// Adds a new entry to database.
+		/// </summary>
+		/// <param name="id">Id of the entry to add.</param>
+		/// <param name="data">Data of entry to add.</param>
+		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
+		private void AddEntryInternal(string id, string data, bool allowOverwrite)
         {
-            return TryAddEntry(id, data, false, out reason);
+            if (!allowOverwrite && EntryExists(id, false)) return;
+
+			string timestamp = DateTime.UtcNow.ToString("G", CultureInfo.CreateSpecificCulture("fr-CA"));
+
+			string query;
+			if (allowOverwrite)
+			{
+				query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{id}', '{data}', '{timestamp}')";
+			}
+			else
+			{
+				query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{id}', '{data}', '{timestamp}') IF NOT EXISTS";
+			}
+
+#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
+			var message = new ExecuteDatabaseQueryMessage(query, agentId);
+#pragma warning restore CS0612
+			dms.Communication.SendSingleResponseMessage(message);
+		}
+
+		/// <summary>
+		/// Attempts to add a new entry to database.
+		/// If <see cref="SendRequest"/> equals true, add will be attempted by Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of the entry to add.</param>
+		/// <param name="data">Data of entry to add.</param>
+		/// <param name="reason">Reason why the entry could not be added.</param>
+		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
+		/// <returns>True if entry was added, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public bool TryAddEntry(string id, string data, out string reason, bool allowOverwrite = false)
+		{
+			return TryAddEntry(id, data, out reason, allowOverwrite, SendRequest);
+		}
+
+		/// <summary>
+		/// Attempts to add a new entry to database.
+		/// </summary>
+		/// <param name="id">Id of the entry to add.</param>
+		/// <param name="data">Data of entry to add.</param>
+		/// <param name="reason">Reason why the entry could not be added.</param>
+		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
+		/// <param name="sendRequest">
+		/// True if add should be attempted by Generic Logger Table element.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if entry was added, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public bool TryAddEntry(string id, string data, out string reason, bool allowOverwrite, bool sendRequest)
+        {
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
+
+			if (sendRequest) { return TryAddEntryExternal(id, data, allowOverwrite, out reason); }
+			else { return TryAddEntryInternal(id, data, allowOverwrite, out reason); }
         }
 
-        /// <summary>
-        /// Add a new entry to the Generic Logger Table.
-        /// </summary>
-        /// <param name="id">Id of the entry to add.</param>
-        /// <param name="data">Data of entry to add.</param>
-        /// <param name="allowOverwrite">Indicates if the data of existing entries can be overwritten.</param>
-        /// <param name="reason">Reason why the entry could not be added.</param>
-        /// <returns>Value indicating if the entry was added or not.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-        public bool TryAddEntry(string id, string data, bool allowOverwrite, out string reason)
+		/// <summary>
+		/// Attempts to add a new entry to database.
+		/// </summary>
+		/// <param name="id">Id of the entry to add.</param>
+		/// <param name="data">Data of entry to add.</param>
+		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
+		/// <param name="reason">Reason why the entry could not be added.</param>
+		/// <param name="sendRequest">
+		/// True if add should be attempted by Generic Logger Table element.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if entry was added, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public bool TryAddEntry(string id, string data, bool allowOverwrite, out string reason, bool sendRequest = false)
         {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+            return TryAddEntry(id, data, out reason, allowOverwrite, sendRequest);
+		}
 
+		/// <summary>
+		/// Attempts to add a new entry to the Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of the entry to add.</param>
+		/// <param name="data">Data of entry to add.</param>
+		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
+		/// <param name="reason">Reason why the entry could not be added.</param>
+		/// <returns>True if entry was added, else false.</returns>
+		private bool TryAddEntryExternal(string id, string data, bool allowOverwrite, out string reason)
+        {
             var request = new AddEntryRequest
             {
                 Id = id,
@@ -270,20 +617,84 @@
             }
 
             reason = response.Reason;
-            return response.Success;
-        }
+			return response.Success;
+		}
 
-        /// <summary>
-        /// Appends the provided data to the data of an existing entry.
-        /// </summary>
-        /// <param name="id">Id of the entry to update.</param>
-        /// <param name="data">Data to be appended.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-        public void AppendEntry(string id, string data)
+		/// <summary>
+		/// Attempts to add a new entry to database.
+		/// </summary>
+		/// <param name="id">Id of the entry to add.</param>
+		/// <param name="data">Data of entry to add.</param>
+		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
+		/// <param name="reason">Reason why the entry could not be added.</param>
+		/// <returns>True if entry was added, else false.</returns>
+		private bool TryAddEntryInternal(string id, string data, bool allowOverwrite, out string reason)
         {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+			if (!allowOverwrite && EntryExists(id))
+			{
+				reason = $"Unable to add entry because an entry with ID {id} already exists and allow overwrite is disabled";
+				return false;
+			}
 
+			string timestamp = DateTime.UtcNow.ToString("G", CultureInfo.CreateSpecificCulture("fr-CA"));
+
+			string query;
+			if (allowOverwrite)
+			{
+				query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{id}', '{data}', '{timestamp}')";
+			}
+			else
+			{
+				query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{id}', '{data}', '{timestamp}') IF NOT EXISTS";
+			}
+
+#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
+			var message = new ExecuteDatabaseQueryMessage(query, agentId);
+#pragma warning restore CS0612
+			var response = (ExecuteDatabaseQueryResponseMessage)dms.Communication.SendSingleResponseMessage(message);
+
+			reason = response.Error;
+			return String.IsNullOrWhiteSpace(reason);
+		}
+
+		/// <summary>
+		/// Appends the provided data to an existing entry in database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, append will be handled by Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to be appended.</param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public void AppendEntry(string id, string data)
+		{
+			AppendEntry(id, data, SendRequest);
+		}
+
+		/// <summary>
+		/// Appends the provided data to an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to be appended.</param>
+		/// <param name="sendRequest">
+		/// True if append should be handled by Generic Logger Table element.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public void AppendEntry(string id, string data, bool sendRequest)
+		{
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
+
+			if (sendRequest) { AppendEntryExternal(id, data); }
+			else { AppendEntryInternal(id, data); } 
+		}
+
+		/// <summary>
+		/// Appends the provided data to an existing entry in the Generic Logger Table based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to be appended.</param>
+		private void AppendEntryExternal(string id, string data)
+        {
             var request = new AppendEntryRequest
             {
                 Id = id,
@@ -293,19 +704,68 @@
             TrySendMessage<AppendEntryResult>(request, false, out _, out _);
         }
 
-        /// <summary>
-        /// Appends the provided data to the data of an existing entry.
-        /// </summary>
-        /// <param name="id">Id of the entry to update.</param>
-        /// <param name="data">Data to be appended.</param>
-        /// <param name="reason">Reason why the data could not be appended.</param>
-        /// <returns>Value indicating if the data was appended or not.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-        public bool TryAppendEntry(string id, string data, out string reason)
-        {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+		/// <summary>
+		/// Appends the provided data to an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to be appended.</param>
+		private void AppendEntryInternal(string id, string data)
+		{
+			if (!TryGetEntry(id, out string oldData, out _, false))
+			{
+				oldData = String.Empty;
+			}
 
+			oldData += data;
+
+			TryAddEntry(id, oldData, out _, true, false);
+		}
+
+		/// <summary>
+		/// Attempts to append the provided data to an existing entry in database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, append will be attempted by Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to be appended.</param>
+		/// <param name="reason">Reason why the data could not be appended.</param>
+		/// <returns>True if entry was appended, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public bool TryAppendEntry(string id, string data, out string reason)
+		{
+			return TryAppendEntry(id, data, out reason, SendRequest);
+		}
+
+		/// <summary>
+		/// Attempts to append the provided data to an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to be appended.</param>
+		/// <param name="reason">Reason why the data could not be appended.</param>
+		/// <param name="sendRequest">
+		/// True if append should be attempted by Generic Logger Table element.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if entry was appended, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public bool TryAppendEntry(string id, string data, out string reason, bool sendRequest)
+		{
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
+
+			if (sendRequest) { return TryAppendEntryExternal(id, data, out reason); }
+			else { return TryAppendEntryInternal(id, data, out reason); }
+		}
+
+		/// <summary>
+		/// Attempts to append the provided data to an existing entry in the Generic Logger Table based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to be appended.</param>
+		/// <param name="reason">Reason why the data could not be appended.</param>
+		/// <returns>True if entry was appended, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		private bool TryAppendEntryExternal(string id, string data, out string reason)
+        {
             var request = new AppendEntryRequest
             {
                 Id = id,
@@ -321,17 +781,68 @@
             return response.Success;
         }
 
-        /// <summary>
-        /// Overwrites the data of an existing entry.
-        /// </summary>
-        /// <param name="id">Id of the entry to update.</param>
-        /// <param name="data">Data to update the existing entry with.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-        public void UpdateEntry(string id, string data)
-        {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+		/// <summary>
+		/// Attempts to append the provided data to an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to be appended.</param>
+		/// <param name="reason">Reason why the data could not be appended.</param>
+		/// <returns>True if entry was appended, else false.</returns>
+		private bool TryAppendEntryInternal(string id, string data, out string reason)
+		{
+			if (!TryGetEntry(id, out string oldData, out _, false))
+			{
+				oldData = String.Empty;
+			}
 
+			oldData += data;
+
+			if (!TryAddEntry(id, oldData, out reason, true, false))
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		/// <summary>
+		/// Overwrites the data of an existing entry in database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, update will be handled by Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to update the existing entry with.</param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public void UpdateEntry(string id, string data)
+		{
+			UpdateEntry(id, data, SendRequest);
+		}
+
+		/// <summary>
+		/// Overwrites the data of an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to update the existing entry with.</param>
+		/// <param name="sendRequest">
+		/// True if update should be handled by Generic Logger Table element.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public void UpdateEntry(string id, string data, bool sendRequest)
+		{
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
+
+			if (sendRequest) { UpdateEntryExternal(id, data); }
+			else { UpdateEntryInternal(id, data); }
+		}
+
+		/// <summary>
+		/// Overwrites the data of an existing entry in the Generic Logger Table based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to update the existing entry with.</param>
+		private void UpdateEntryExternal(string id, string data)
+        {
             var request = new UpdateEntryRequest
             {
                 Id = id,
@@ -341,19 +852,65 @@
             TrySendMessage<UpdateEntryResult>(request, false, out _, out _);
         }
 
-        /// <summary>
-        /// Overwrites the data of an existing entry.
-        /// </summary>
-        /// <param name="id">Id of the entry to update.</param>
-        /// <param name="data">Data to update the existing entry with.</param>
-        /// <param name="reason">Reason why the data not be updated.</param>
-        /// <returns>Value indicating whether the data was updated or not.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-        public bool TryUpdateEntry(string id, string data, out string reason)
-        {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+		/// <summary>
+		/// Overwrites the data of an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to update the existing entry with.</param>
+		private void UpdateEntryInternal(string id, string data)
+		{
+			string query = $"UPDATE {tableName} SET dt = '{data}' WHERE id = '{id}' IF EXISTS";
 
+#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
+			var message = new ExecuteDatabaseQueryMessage(query, agentId);
+#pragma warning restore CS0612
+			dms.Communication.SendSingleResponseMessage(message);
+		}
+
+		/// <summary>
+		/// Attempts to overwrite the data of an existing entry in database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, update will be attempted by Generic Logger Table element.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to update the existing entry with.</param>
+		/// <param name="reason">Reason why the data was not be updated.</param>
+		/// <returns>True if entry was updated, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public bool TryUpdateEntry(string id, string data, out string reason)
+		{
+			return TryUpdateEntry(id, data, out reason, SendRequest);
+		}
+
+		/// <summary>
+		/// Attempts to overwrite the data of an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to update the existing entry with.</param>
+		/// <param name="reason">Reason why the data was not be updated.</param>
+		/// <param name="sendRequest">
+		/// True if update should be attempted by Generic Logger Table element.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if entry was updated, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public bool TryUpdateEntry(string id, string data, out string reason, bool sendRequest)
+		{
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
+
+			if (sendRequest) { return TryUpdateEntryExternal(id, data, out reason); }
+			else { return TryUpdateEntryInternal(id, data, out reason); }
+		}
+
+		/// <summary>
+		/// Attempts to overwrite the data of an existing entry in the Generic Logger Table based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to update the existing entry with.</param>
+		/// <param name="reason">Reason why the data was not be updated.</param>
+		/// <returns>True if entry was updated, else false.</returns>
+		private bool TryUpdateEntryExternal(string id, string data, out string reason)
+        {
             var request = new UpdateEntryRequest
             {
                 Id = id,
@@ -369,7 +926,27 @@
             return response.Success;
         }
 
-        private bool TrySendMessage<T>(Message message, bool requiresResponse, out string reason, out T responseMessage) where T : Message
+		/// <summary>
+		/// Attempts to overwrite the data of an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to update the existing entry with.</param>
+		/// <param name="reason">Reason why the data was not be updated.</param>
+		/// <returns>True if entry was updated, else false.</returns>
+		private bool TryUpdateEntryInternal(string id, string data, out string reason)
+		{
+			string query = $"UPDATE {tableName} SET dt = '{data}' WHERE id = '{id}' IF EXISTS";
+
+#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
+			var message = new ExecuteDatabaseQueryMessage(query, agentId);
+#pragma warning restore CS0612
+			var response = (ExecuteDatabaseQueryResponseMessage)dms.Communication.SendSingleResponseMessage(message);
+
+			reason = response.Error;
+			return String.IsNullOrWhiteSpace(reason);
+		}
+
+		private bool TrySendMessage<T>(Message message, bool requiresResponse, out string reason, out T responseMessage) where T : Message
         {
             reason = String.Empty;
             responseMessage = default(T);
@@ -405,5 +982,22 @@
 
             return true;
         }
-    }
+
+		private string GetTableName()
+		{
+			var prefix = String.Empty;
+
+			var getDataBaseInfoMessage = new GetInfoMessage(InfoType.Database);
+			var dataBaseInfoResponseMessage = (GetDataBaseInfoResponseMessage)dms.Communication.SendSingleResponseMessage(getDataBaseInfoMessage);
+			if (dataBaseInfoResponseMessage?.LocalDatabaseInfo?.DatabaseType == DBMSType.CassandraCluster)
+			{
+				var db = dataBaseInfoResponseMessage.LocalDatabaseInfo.DB;
+				prefix = String.Format("{0}_elementdata_{1}_{2}_1000.", db, agentId, elementId);
+			}
+
+			string name = String.Format("{0}elementdata_{1}_{2}_1000", prefix, agentId, elementId);
+
+			return name;
+		}
+	}
 }
