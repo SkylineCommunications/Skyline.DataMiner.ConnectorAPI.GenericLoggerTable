@@ -15,7 +15,7 @@
 	/// <summary>
 	/// Represents a Generic Logger Table element in DataMiner and exposes methods to request and push data to and from its internal logger table.
 	/// </summary>
-    public class GenericLoggerTableElement
+	public class GenericLoggerTableElement
     {
         /// <summary>
         /// Name of the Generic Logger Table protocol.
@@ -84,14 +84,36 @@
         public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
 
 		/// <summary>
-		/// Checks whether an entry with the given Id exists in database.
+		/// True if check should be handled by Generic Logger Table driver.
+		/// Default: false.
+		/// </summary>
+		public bool SendRequest { get; set; } = false;
+
+		/// <summary>
+		/// Checks whether an entry with the <paramref name="id"/> exists in database.
+		/// If <see cref="SendRequest"/> equals true, check will be handled by Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of the entry to check.</param>
-		/// <param name="sendRequest">True if check should be handled by Generic Logger Table driver.</param>
 		/// <returns>True if entry exists, else false.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
 		/// <exception cref="InvalidOperationException">Thrown if we're unable to check if the entry exists.</exception>
-		public bool EntryExists(string id, bool sendRequest = true)
+		public bool EntryExists(string id)
+		{
+			return EntryExists(id, SendRequest);
+		}
+
+		/// <summary>
+		/// Checks whether an entry with the <paramref name="id"/> exists in database.
+		/// </summary>
+		/// <param name="id">Id of the entry to check.</param>
+		/// <param name="sendRequest">
+		/// True if check should be handled by Generic Logger Table driver. 
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if entry exists, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		/// <exception cref="InvalidOperationException">Thrown if we're unable to check if the entry exists.</exception>
+		public bool EntryExists(string id, bool sendRequest)
 		{
 			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
@@ -100,7 +122,7 @@
 		}
 
 		/// <summary>
-		/// Checks whether an entry with the given Id exists in the Generic Logger Table.
+		/// Checks whether an entry with the <paramref name="id"/> exists in the Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of the entry to check.</param>
 		/// <returns>True if entry exists, else false.</returns>
@@ -121,7 +143,7 @@
         }
 
 		/// <summary>
-		/// Checks whether an entry with the given Id exists in database.
+		/// Checks whether an entry with the <paramref name="id"/> exists in database.
 		/// </summary>
 		/// <param name="id">Id of the entry to check.</param>
 		/// <returns>True if entry exists, else false.</returns>
@@ -144,14 +166,30 @@
         }
 
 		/// <summary>
-		/// Retrieves data from database.
+		/// Retrieves data from database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, retrieval will be handled by Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of the entry to retrieve.</param>
-		/// <param name="sendRequest">True if retrieval should be handled by Generic Logger Table driver.</param>
 		/// <returns>Data contained in the requested entry.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
 		/// <exception cref="InvalidOperationException">Thrown if we're unable to retrieve the requested data.</exception>
-		public string GetEntry(string id, bool sendRequest = true)
+		public string GetEntry(string id)
+		{ 
+			return GetEntry(id, SendRequest);
+		}
+
+		/// <summary>
+		/// Retrieves data from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to retrieve.</param>
+		/// <param name="sendRequest">
+		/// True if retrieval should be handled by Generic Logger Table driver. 
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>Data contained in the requested entry.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		/// <exception cref="InvalidOperationException">Thrown if we're unable to retrieve the requested data.</exception>
+		public string GetEntry(string id, bool sendRequest)
         {
             if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
@@ -160,7 +198,7 @@
 		}
 
 		/// <summary>
-		/// Retrieves data from the Generic Logger Table.
+		/// Retrieves data from the Generic Logger Table based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of the entry to retrieve.</param>
 		/// <returns>Data contained in the requested entry.</returns>
@@ -183,7 +221,7 @@
         }
 
 		/// <summary>
-		/// Retrieves data from database.
+		/// Retrieves data from database based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of the entry to retrieve.</param>
 		/// <returns>Data contained in the requested entry.</returns>
@@ -213,15 +251,32 @@
 		}
 
 		/// <summary>
-		/// Attempts to retrieve data from database.
+		/// Attempts to retrieve data from database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, retrieval will be attempted by Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of entry to retrieve.</param>
 		/// <param name="data">Data contained in the requested entry.</param>
 		/// <param name="reason">Reason if data could not be retrieved.</param>
-		/// <param name="sendRequest">True if retrieval should be attempted by Generic Logger Table driver.</param>
 		/// <returns>True if data was retrieved, else false.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
-		public bool TryGetEntry(string id, out string data, out string reason, bool sendRequest = true)
+		public bool TryGetEntry(string id, out string data, out string reason)
+		{
+			return TryGetEntry(id, out data, out reason, SendRequest);
+		}
+
+		/// <summary>
+		/// Attempts to retrieve data from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to retrieve.</param>
+		/// <param name="data">Data contained in the requested entry.</param>
+		/// <param name="reason">Reason if data could not be retrieved.</param>
+		/// <param name="sendRequest">
+		/// True if retrieval should be attempted by Generic Logger Table driver.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if data was retrieved, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		public bool TryGetEntry(string id, out string data, out string reason, bool sendRequest)
         {
 			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
@@ -230,7 +285,7 @@
 		}
 
 		/// <summary>
-		/// Attempts to retrieve data from the Generic Logger Table.
+		/// Attempts to retrieve data from the Generic Logger Table based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of entry to retrieve.</param>
 		/// <param name="data">Data contained in the requested entry.</param>
@@ -255,7 +310,7 @@
         }
 
 		/// <summary>
-		/// Attempts to retrieve data from database.
+		/// Attempts to retrieve data from database based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of entry to retrieve.</param>
 		/// <param name="data">Data contained in the requested entry.</param>
@@ -277,12 +332,26 @@
 		}
 
 		/// <summary>
-		/// Removes an entry from database.
+		/// Removes an entry from database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, removal will be handled by Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of entry to remove.</param>
-		/// <param name="sendRequest">True if removal should be handled by Generic Logger Table driver.</param>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
-		public void RemoveEntry(string id, bool sendRequest = true)
+		public void RemoveEntry(string id)
+		{
+			RemoveEntry(id, SendRequest);
+		}
+
+		/// <summary>
+		/// Removes an entry from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		/// <param name="sendRequest">
+		/// True if removal should be handled by Generic Logger Table driver.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		public void RemoveEntry(string id, bool sendRequest)
         {
 			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
@@ -291,7 +360,7 @@
 		}
 
 		/// <summary>
-		/// Removes an entry from the Generic Logger Table.
+		/// Removes an entry from the Generic Logger Table based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of entry to remove.</param>
 		private void RemoveEntryExternal(string id)
@@ -305,7 +374,7 @@
         }
 
 		/// <summary>
-		/// Removes an entry from database.
+		/// Removes an entry from database based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of entry to remove.</param>
 		private void RemoveEntryInternal(string id)
@@ -319,14 +388,30 @@
 		}
 
 		/// <summary>
-		/// Attempts to remove an entry from database.
+		/// Attempts to remove an entry from database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, removal will be attempted by Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of entry to remove.</param>
 		/// <param name="reason">Reason why the entry could not be removed.</param>
-		/// <param name="sendRequest">True if removal should be attempted by Generic Logger Table driver.</param>
 		/// <returns>True if entry was removed, else false.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
-		public bool TryRemoveEntry(string id, out string reason, bool sendRequest = true)
+		public bool TryRemoveEntry(string id, out string reason)
+		{
+			return TryRemoveEntry(id, out reason, SendRequest);
+		}
+
+		/// <summary>
+		/// Attempts to remove an entry from database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		/// <param name="reason">Reason why the entry could not be removed.</param>
+		/// <param name="sendRequest">
+		/// True if removal should be attempted by Generic Logger Table driver.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if entry was removed, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
+		public bool TryRemoveEntry(string id, out string reason, bool sendRequest)
         {
 			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
@@ -335,7 +420,7 @@
 		}
 
 		/// <summary>
-		/// Attempts to remove an entry from the Generic Logger Table.
+		/// Attempts to remove an entry from the Generic Logger Table based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of entry to remove.</param>
 		/// <param name="reason">Reason why the entry could not be removed.</param>
@@ -357,7 +442,7 @@
         }
 
 		/// <summary>
-		/// Attempts to remove an entry from database.
+		/// Attempts to remove an entry from database based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of entry to remove.</param>
 		/// <param name="reason">Reason why the entry could not be removed.</param>
@@ -377,13 +462,29 @@
 
 		/// <summary>
 		/// Adds a new entry to database.
+		/// If <see cref="SendRequest"/> equals true, add will be handled by Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of entry to add.</param>
 		/// <param name="data">Data of entry to add.</param>
 		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
-		/// <param name="sendRequest">True if add should be handled by Generic Logger Table driver.</param>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-		public void AddEntry(string id, string data, bool allowOverwrite = false, bool sendRequest = true)
+		public void AddEntry(string id, string data, bool allowOverwrite = false)
+		{
+			AddEntry(id, data, allowOverwrite, SendRequest);
+		}
+
+		/// <summary>
+		/// Adds a new entry to database.
+		/// </summary>
+		/// <param name="id">Id of entry to add.</param>
+		/// <param name="data">Data of entry to add.</param>
+		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
+		/// <param name="sendRequest">
+		/// True if add should be handled by Generic Logger Table driver.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public void AddEntry(string id, string data, bool allowOverwrite, bool sendRequest)
         {
 			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 			if (data == null) throw new ArgumentNullException(nameof(data));
@@ -440,15 +541,33 @@
 
 		/// <summary>
 		/// Attempts to add a new entry to database.
+		/// If <see cref="SendRequest"/> equals true, add will be attempted by Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of the entry to add.</param>
 		/// <param name="data">Data of entry to add.</param>
 		/// <param name="reason">Reason why the entry could not be added.</param>
 		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
-		/// <param name="sendRequest">True if add should be attempted by Generic Logger Table driver.</param>
 		/// <returns>True if entry was added, else false.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-		public bool TryAddEntry(string id, string data, out string reason, bool allowOverwrite = false, bool sendRequest = true)
+		public bool TryAddEntry(string id, string data, out string reason, bool allowOverwrite = false)
+		{
+			return TryAddEntry(id, data, out reason, allowOverwrite, SendRequest);
+		}
+
+		/// <summary>
+		/// Attempts to add a new entry to database.
+		/// </summary>
+		/// <param name="id">Id of the entry to add.</param>
+		/// <param name="data">Data of entry to add.</param>
+		/// <param name="reason">Reason why the entry could not be added.</param>
+		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
+		/// <param name="sendRequest">
+		/// True if add should be attempted by Generic Logger Table driver.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if entry was added, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public bool TryAddEntry(string id, string data, out string reason, bool allowOverwrite, bool sendRequest)
         {
 			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 			if (data == null) throw new ArgumentNullException(nameof(data));
@@ -464,10 +583,13 @@
 		/// <param name="data">Data of entry to add.</param>
 		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
 		/// <param name="reason">Reason why the entry could not be added.</param>
-		/// <param name="sendRequest">True if add should be attempted by Generic Logger Table driver.</param>
+		/// <param name="sendRequest">
+		/// True if add should be attempted by Generic Logger Table driver.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
 		/// <returns>True if entry was added, else false.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-		public bool TryAddEntry(string id, string data, bool allowOverwrite, out string reason, bool sendRequest = true)
+		public bool TryAddEntry(string id, string data, bool allowOverwrite, out string reason, bool sendRequest = false)
         {
             return TryAddEntry(id, data, out reason, allowOverwrite, sendRequest);
 		}
@@ -536,13 +658,28 @@
 		}
 
 		/// <summary>
-		/// Appends the provided data to an existing entry in database.
+		/// Appends the provided data to an existing entry in database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, append will be handled by Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to be appended.</param>
-		/// <param name="sendRequest">True if append should be handled by Generic Logger Table driver.</param>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-		public void AppendEntry(string id, string data, bool sendRequest = true)
+		public void AppendEntry(string id, string data)
+		{
+			AppendEntry(id, data, SendRequest);
+		}
+
+		/// <summary>
+		/// Appends the provided data to an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to be appended.</param>
+		/// <param name="sendRequest">
+		/// True if append should be handled by Generic Logger Table driver.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public void AppendEntry(string id, string data, bool sendRequest)
 		{
 			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 			if (data == null) throw new ArgumentNullException(nameof(data));
@@ -552,7 +689,7 @@
 		}
 
 		/// <summary>
-		/// Appends the provided data to an existing entry in the Generic Logger Table.
+		/// Appends the provided data to an existing entry in the Generic Logger Table based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to be appended.</param>
@@ -568,7 +705,7 @@
         }
 
 		/// <summary>
-		/// Appends the provided data to an existing entry in database.
+		/// Appends the provided data to an existing entry in database based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to be appended.</param>
@@ -585,15 +722,32 @@
 		}
 
 		/// <summary>
-		/// Attempts to append the provided data to an existing entry in database.
+		/// Attempts to append the provided data to an existing entry in database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, append will be attempted by Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to be appended.</param>
 		/// <param name="reason">Reason why the data could not be appended.</param>
-		/// <param name="sendRequest">True if append should be attempted by Generic Logger Table driver.</param>
 		/// <returns>True if entry was appended, else false.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-		public bool TryAppendEntry(string id, string data, out string reason, bool sendRequest = true)
+		public bool TryAppendEntry(string id, string data, out string reason)
+		{
+			return TryAppendEntry(id, data, out reason, SendRequest);
+		}
+
+		/// <summary>
+		/// Attempts to append the provided data to an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to be appended.</param>
+		/// <param name="reason">Reason why the data could not be appended.</param>
+		/// <param name="sendRequest">
+		/// True if append should be attempted by Generic Logger Table driver.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <returns>True if entry was appended, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public bool TryAppendEntry(string id, string data, out string reason, bool sendRequest)
 		{
 			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 			if (data == null) throw new ArgumentNullException(nameof(data));
@@ -603,7 +757,7 @@
 		}
 
 		/// <summary>
-		/// Attempts to append the provided data to an existing entry in the Generic Logger Table.
+		/// Attempts to append the provided data to an existing entry in the Generic Logger Table based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to be appended.</param>
@@ -628,7 +782,7 @@
         }
 
 		/// <summary>
-		/// Attempts to append the provided data to an existing entry in database.
+		/// Attempts to append the provided data to an existing entry in database based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to be appended.</param>
@@ -652,13 +806,28 @@
 		}
 
 		/// <summary>
-		/// Overwrites the data of an existing entry in database.
+		/// Overwrites the data of an existing entry in database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, update will be handled by Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to update the existing entry with.</param>
-		/// <param name="sendRequest">True if update should be handled by Generic Logger Table driver.</param>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-		public void UpdateEntry(string id, string data, bool sendRequest = true)
+		public void UpdateEntry(string id, string data)
+		{
+			UpdateEntry(id, data, SendRequest);
+		}
+
+		/// <summary>
+		/// Overwrites the data of an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to update the existing entry with.</param>
+		/// <param name="sendRequest">
+		/// True if update should be handled by Generic Logger Table driver.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public void UpdateEntry(string id, string data, bool sendRequest)
 		{
 			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 			if (data == null) throw new ArgumentNullException(nameof(data));
@@ -668,7 +837,7 @@
 		}
 
 		/// <summary>
-		/// Overwrites the data of an existing entry in the Generic Logger Table.
+		/// Overwrites the data of an existing entry in the Generic Logger Table based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to update the existing entry with.</param>
@@ -684,7 +853,7 @@
         }
 
 		/// <summary>
-		/// Overwrites the data of an existing entry in database.
+		/// Overwrites the data of an existing entry in database based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to update the existing entry with.</param>
@@ -699,12 +868,29 @@
 		}
 
 		/// <summary>
-		/// Attempts to overwrite the data of an existing entry in database.
+		/// Attempts to overwrite the data of an existing entry in database based on <paramref name="id"/>.
+		/// If <see cref="SendRequest"/> equals true, update will be attempted by Generic Logger Table.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to update the existing entry with.</param>
 		/// <param name="reason">Reason why the data was not be updated.</param>
-		/// <param name="sendRequest">True if update should be attempted by Generic Logger Table driver.</param>
+		/// <returns>True if entry was updated, else false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
+		public bool TryUpdateEntry(string id, string data, out string reason)
+		{
+			return TryUpdateEntry(id, data, out reason, SendRequest);
+		}
+
+		/// <summary>
+		/// Attempts to overwrite the data of an existing entry in database based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of the entry to update.</param>
+		/// <param name="data">Data to update the existing entry with.</param>
+		/// <param name="reason">Reason why the data was not be updated.</param>
+		/// <param name="sendRequest">
+		/// True if update should be attempted by Generic Logger Table driver.
+		/// This value overrides <see cref="SendRequest"/>.
+		/// </param>
 		/// <returns>True if entry was updated, else false.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
 		public bool TryUpdateEntry(string id, string data, out string reason, bool sendRequest = true)
@@ -717,7 +903,7 @@
 		}
 
 		/// <summary>
-		/// Attempts to overwrite the data of an existing entry in the Generic Logger Table.
+		/// Attempts to overwrite the data of an existing entry in the Generic Logger Table based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to update the existing entry with.</param>
@@ -741,7 +927,7 @@
         }
 
 		/// <summary>
-		/// Attempts to overwrite the data of an existing entry in database.
+		/// Attempts to overwrite the data of an existing entry in database based on <paramref name="id"/>.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to update the existing entry with.</param>
