@@ -893,7 +893,7 @@
 		/// </param>
 		/// <returns>True if entry was updated, else false.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
-		public bool TryUpdateEntry(string id, string data, out string reason, bool sendRequest = true)
+		public bool TryUpdateEntry(string id, string data, out string reason, bool sendRequest)
 		{
 			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 			if (data == null) throw new ArgumentNullException(nameof(data));
