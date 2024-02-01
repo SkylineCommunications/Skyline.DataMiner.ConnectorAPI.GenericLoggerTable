@@ -115,10 +115,10 @@
 		/// <exception cref="InvalidOperationException">Thrown if we're unable to check if the entry exists.</exception>
 		public bool EntryExists(string id, bool sendRequest)
 		{
-			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
 
-			if (sendRequest) return EntryExistsExternal(id);
-			else return EntryExistsInternal(id);
+			if (sendRequest) { return EntryExistsExternal(id); }
+			else { return EntryExistsInternal(id); }
 		}
 
 		/// <summary>
@@ -191,10 +191,10 @@
 		/// <exception cref="InvalidOperationException">Thrown if we're unable to retrieve the requested data.</exception>
 		public string GetEntry(string id, bool sendRequest)
         {
-            if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
 
-            if (sendRequest) return GetEntryExternal(id);
-            else return GetEntryInternal(id);
+			if (sendRequest) { return GetEntryExternal(id); }
+			else { return GetEntryInternal(id); }
 		}
 
 		/// <summary>
@@ -278,10 +278,10 @@
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
 		public bool TryGetEntry(string id, out string data, out string reason, bool sendRequest)
         {
-			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
 
-            if (sendRequest) return TryGetEntryExternal(id, out data, out reason);
-            else return TryGetEntryInternal(id, out data, out reason);
+			if (sendRequest) { return TryGetEntryExternal(id, out data, out reason); }
+			else { return TryGetEntryInternal(id, out data, out reason); }
 		}
 
 		/// <summary>
@@ -353,10 +353,10 @@
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
 		public void RemoveEntry(string id, bool sendRequest)
         {
-			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
 
-            if (sendRequest) RemoveEntryExternal(id);
-            else RemoveEntryInternal(id);
+			if (sendRequest) { RemoveEntryExternal(id); }
+			else { RemoveEntryInternal(id); }
 		}
 
 		/// <summary>
@@ -384,7 +384,7 @@
 #pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
 			var message = new ExecuteDatabaseQueryMessage(query, agentId);
 #pragma warning restore CS0612
-			var _ = dms.Communication.SendSingleResponseMessage(message);
+			dms.Communication.SendSingleResponseMessage(message);
 		}
 
 		/// <summary>
@@ -413,10 +413,10 @@
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string.</exception>
 		public bool TryRemoveEntry(string id, out string reason, bool sendRequest)
         {
-			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
 
-            if (sendRequest) return TryRemoveEntryExternal(id, out reason);
-            else return TryRemoveEntryInternal(id, out reason);
+			if (sendRequest) { return TryRemoveEntryExternal(id, out reason); }
+			else { return TryRemoveEntryInternal(id, out reason); }
 		}
 
 		/// <summary>
@@ -486,11 +486,11 @@
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
 		public void AddEntry(string id, string data, bool allowOverwrite, bool sendRequest)
         {
-			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-			if (data == null) throw new ArgumentNullException(nameof(data));
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
 
-            if (sendRequest) AddEntryExternal(id, data, allowOverwrite);
-            else AddEntryInternal(id, data, allowOverwrite);
+			if (sendRequest) { AddEntryExternal(id, data, allowOverwrite); }
+			else { AddEntryInternal(id, data, allowOverwrite); }
         }
 
 		/// <summary>
@@ -536,7 +536,7 @@
 #pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
 			var message = new ExecuteDatabaseQueryMessage(query, agentId);
 #pragma warning restore CS0612
-			var _ = dms.Communication.SendSingleResponseMessage(message);
+			dms.Communication.SendSingleResponseMessage(message);
 		}
 
 		/// <summary>
@@ -569,11 +569,11 @@
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
 		public bool TryAddEntry(string id, string data, out string reason, bool allowOverwrite, bool sendRequest)
         {
-			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-			if (data == null) throw new ArgumentNullException(nameof(data));
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
 
-            if (sendRequest) return TryAddEntryExternal(id, data, allowOverwrite, out reason);
-            else return TryAddEntryInternal(id, data, allowOverwrite, out reason);
+			if (sendRequest) { return TryAddEntryExternal(id, data, allowOverwrite, out reason); }
+			else { return TryAddEntryInternal(id, data, allowOverwrite, out reason); }
         }
 
 		/// <summary>
@@ -681,11 +681,11 @@
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
 		public void AppendEntry(string id, string data, bool sendRequest)
 		{
-			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-			if (data == null) throw new ArgumentNullException(nameof(data));
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
 
-			if (sendRequest) AppendEntryExternal(id, data);
-			else AppendEntryInternal(id, data);
+			if (sendRequest) { AppendEntryExternal(id, data); }
+			else { AppendEntryInternal(id, data); } 
 		}
 
 		/// <summary>
@@ -749,11 +749,11 @@
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
 		public bool TryAppendEntry(string id, string data, out string reason, bool sendRequest)
 		{
-			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-			if (data == null) throw new ArgumentNullException(nameof(data));
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
 
-			if (sendRequest) return TryAppendEntryExternal(id, data, out reason);
-			else return TryAppendEntryInternal(id, data, out reason);
+			if (sendRequest) { return TryAppendEntryExternal(id, data, out reason); }
+			else { return TryAppendEntryInternal(id, data, out reason); }
 		}
 
 		/// <summary>
@@ -829,11 +829,11 @@
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
 		public void UpdateEntry(string id, string data, bool sendRequest)
 		{
-			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-			if (data == null) throw new ArgumentNullException(nameof(data));
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
 
-			if (sendRequest) UpdateEntryExternal(id, data);
-			else UpdateEntryInternal(id, data);
+			if (sendRequest) { UpdateEntryExternal(id, data); }
+			else { UpdateEntryInternal(id, data); }
 		}
 
 		/// <summary>
@@ -864,7 +864,7 @@
 #pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
 			var message = new ExecuteDatabaseQueryMessage(query, agentId);
 #pragma warning restore CS0612
-			var _ = dms.Communication.SendSingleResponseMessage(message);
+			dms.Communication.SendSingleResponseMessage(message);
 		}
 
 		/// <summary>
@@ -895,11 +895,11 @@
 		/// <exception cref="ArgumentNullException">Thrown if the provided id is null or an empty string or if the data is null.</exception>
 		public bool TryUpdateEntry(string id, string data, out string reason, bool sendRequest)
 		{
-			if (String.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
-			if (data == null) throw new ArgumentNullException(nameof(data));
+			if (String.IsNullOrEmpty(id)) { throw new ArgumentNullException(nameof(id)); }
+			if (data == null) { throw new ArgumentNullException(nameof(data)); }
 
-			if (sendRequest) return TryUpdateEntryExternal(id, data, out reason);
-			else return TryUpdateEntryInternal(id, data, out reason);
+			if (sendRequest) { return TryUpdateEntryExternal(id, data, out reason); }
+			else { return TryUpdateEntryInternal(id, data, out reason); }
 		}
 
 		/// <summary>
