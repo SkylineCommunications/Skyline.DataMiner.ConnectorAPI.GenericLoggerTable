@@ -1,8 +1,23 @@
 # Skyline.DataMiner.ConnectorAPI.GenericLoggerTable
 
-## About
+## Description
 
-This repository contains the messages that are used to interact with the Generic Logger Table connector using InterApp communication.
+This NuGet package is used to access data from a [Logger Table](https://docs.dataminer.services/develop/devguide/Connector/AdvancedLoggerTables.html) hosted by a DataMiner element.
+
+Requirements:
+- DataMiner system with [Generic Logger Table connector](https://catalog.dataminer.services/details/connector/8410) element
+
+## Getting Started
+
+- Reference the NuGet package from an Automation script, Connector, GQI query,... 
+- Create a new instance of a `GenericLoggerTableElement` by passing the `connection`, `agentId` and `elementId`
+- Store and retrieve data using the CRUD operations available from the `GenericLoggerTableElement` instance.
+
+## Typical Use Case
+
+Logger Tables are used to quickly store and retrieve large pieces of data. Note that this data is written immediately to the underlying database. As such, there's no way to monitor the data from DataMiner.
+
+## About
 
 ### About DataMiner
 
