@@ -68,7 +68,7 @@
         /// <param name="elementId">ID of the Generic Logger Table element.</param>
         /// <exception cref="ArgumentNullException">Thrown when the provided connection or the element is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when provided element or agent id is negative.</exception>
-        public GenericLoggerTableElement(Connection connection, int agentId, int elementId)
+        public GenericLoggerTableElement(IConnection connection, int agentId, int elementId)
         {
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
             this.agentId = agentId < 0 ? throw new ArgumentOutOfRangeException(nameof(agentId), "Agent ID cannot be negative") : agentId;
