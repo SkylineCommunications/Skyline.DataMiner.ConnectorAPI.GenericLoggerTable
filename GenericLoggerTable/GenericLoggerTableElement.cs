@@ -523,7 +523,7 @@
             string query;
             if (allowOverwrite)
             {
-                query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{id}', '{HexConverter.ToHexString(data)}', '{timestamp}');";
+                query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{id}', '{HexConverter.ToHexString(data)}', '{timestamp}')";
             }
             else
             {
@@ -638,7 +638,7 @@
             string query;
             if (allowOverwrite)
             {
-                query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{id}', '{HexConverter.ToHexString(data)}', '{timestamp}')";
+                query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{id}', '{data}', '{timestamp}');";
             }
             else
             {
