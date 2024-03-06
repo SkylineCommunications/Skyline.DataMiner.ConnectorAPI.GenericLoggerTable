@@ -526,7 +526,7 @@
 			string query;
 			if (allowOverwrite)
 			{
-				query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{id}', '{data}', '{timestamp}')";
+				query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{id}', '{data}', '{timestamp}');";
 			}
 			else
 			{
