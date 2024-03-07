@@ -43,7 +43,7 @@
         /// <param name="id">Id of the entry to check.</param>
         /// <returns>True if entry exists, else false.</returns>
         /// <exception cref="InvalidOperationException">Thrown if we're unable to check if the entry exists.</exception>
-        private bool EntryExists(string id)
+        public bool EntryExists(string id)
         {
             var query = $"SELECT id FROM {tableName} WHERE id='{QueryEscaper.Escape(id)}' LIMIT 1 /*unlimited query*/";
 
