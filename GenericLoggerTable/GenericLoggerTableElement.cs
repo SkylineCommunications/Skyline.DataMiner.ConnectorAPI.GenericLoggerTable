@@ -85,7 +85,7 @@
                 throw new InvalidOperationException($"Entry with id {id} doesn't exist in the table");
             }
 
-            string data = QueryEscaper.Unescape(response.Values.Sa.FirstOrDefault());
+            string data = response.Values.Sa.FirstOrDefault();
 
             return data;
         }
@@ -107,7 +107,7 @@
             var response = (ExecuteDatabaseQueryResponseMessage)connection.HandleSingleResponseMessage(message);
 
             bool entryExists = response.Values.Sa.Any();
-            data = QueryEscaper.Unescape(response.Values.Sa.FirstOrDefault());
+            data = response.Values.Sa.FirstOrDefault();
             reason = entryExists ? response.Error : "Entry doesn't exist in the table";
             return entryExists && String.IsNullOrWhiteSpace(response.Error);
         }

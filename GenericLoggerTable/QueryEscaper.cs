@@ -17,15 +17,5 @@
         {
             return data?.Replace("'", "''");
         }
-
-        /// <summary>
-        /// Unescapes the escaped ' characters.
-        /// </summary>
-        /// <param name="data">String to be unescaped.</param>
-        /// <returns>Unescaped string.</returns>
-        public static string Unescape(string data)
-        {
-            return data?.Replace("''", "'");
-        }
     }
 }
