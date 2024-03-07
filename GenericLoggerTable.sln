@@ -5,8 +5,6 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenericLoggerTable", "GenericLoggerTable\GenericLoggerTable.csproj", "{6820AC8A-5D06-480C-87A2-6DF1D26B2BAF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericLoggerTableTests", "GenericLoggerTableTests\GenericLoggerTableTests.csproj", "{4D91CA04-2715-4053-A018-4D145320B000}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{6820AC8A-5D06-480C-87A2-6DF1D26B2BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6820AC8A-5D06-480C-87A2-6DF1D26B2BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6820AC8A-5D06-480C-87A2-6DF1D26B2BAF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4D91CA04-2715-4053-A018-4D145320B000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4D91CA04-2715-4053-A018-4D145320B000}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4D91CA04-2715-4053-A018-4D145320B000}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4D91CA04-2715-4053-A018-4D145320B000}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
