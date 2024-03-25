@@ -280,8 +280,23 @@
             var response = (ExecuteDatabaseQueryResponseMessage)connection.HandleSingleResponseMessage(message);
 
             reason = response.Error;
-            return String.IsNullOrWhiteSpace(reason);
-        }
+			if (String.IsNullOrEmpty(reason))
+			{
+				if (response.Values?.Sa.FirstOrDefault() == "True")
+				{
+					return true;
+				}
+				else
+				{
+					reason = "Entry doesn't exist";
+					return false;
+				}
+			}
+			else
+			{
+				return false;
+			}
+		}
 
         private string GetTableName()
         {
