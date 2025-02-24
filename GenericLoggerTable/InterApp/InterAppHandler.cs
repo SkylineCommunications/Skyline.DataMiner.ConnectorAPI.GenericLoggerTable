@@ -18,7 +18,7 @@
 		/// <summary>
 		/// List of known types.
 		/// </summary>
-		public readonly static List<Type> KnownTypes = new List<Type>
+		public static IReadOnlyList<Type> KnownTypes { get; } = new List<Type>
 		{
 			typeof(AddEntryRequest),
 			typeof(AddEntryResponse),
