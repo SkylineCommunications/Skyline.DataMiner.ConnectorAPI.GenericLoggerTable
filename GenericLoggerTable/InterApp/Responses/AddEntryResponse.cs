@@ -5,7 +5,7 @@
 	/// <summary>
 	/// Response to <see cref="AddEntryRequest"/>.
 	/// </summary>
-	public class AddEntryResponse : DataResponse
+	public class AddEntryResponse : Response
 	{
 	}
 }
