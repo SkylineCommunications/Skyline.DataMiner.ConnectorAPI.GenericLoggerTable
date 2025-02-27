@@ -7,9 +7,15 @@
 	/// </summary>
 	public class Request : Message
 	{
+		private string id;
+
 		/// <summary>
 		/// Gets or sets the ID of the request.
 		/// </summary>
-		public string Id { get; set; }
+		public string Id
+		{
+			get { return id; }
+			set { id = value.ToUpper(); }
+		}
 	}
 }
