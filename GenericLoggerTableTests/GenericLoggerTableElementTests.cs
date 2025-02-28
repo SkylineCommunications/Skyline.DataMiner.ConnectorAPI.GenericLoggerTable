@@ -40,7 +40,6 @@
 			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<AppendEntryResponse>(It.Is<AppendEntryRequest>(req => req.Id == nonExistingId))).Returns(new AppendEntryResponse { Success = false, Error = error });
 
 			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<RemoveEntryResponse>(It.Is<RemoveEntryRequest>(req => req.Id == existingId))).Returns(new RemoveEntryResponse { Success = true, Error = String.Empty });
-			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<RemoveEntryResponse>(It.Is<RemoveEntryRequest>(req => req.Id == nonExistingId))).Returns(new RemoveEntryResponse { Success = false, Error = error });
 
 			tableElement = new GenericLoggerTableElement(mockInterAppHandler.Object);
 		}
@@ -53,6 +52,8 @@
 
 			// Assert
 			Assert.IsTrue(result);
+
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<EntryExistsResponse>(It.Is<EntryExistsRequest>(r => r.Id == existingId)), Times.Once);
 		}
 
 		[TestMethod]
@@ -63,6 +64,8 @@
 
 			// Assert
 			Assert.IsFalse(result);
+
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<EntryExistsResponse>(It.Is<EntryExistsRequest>(r => r.Id == nonExistingId)), Times.Once);
 		}
 
 		[TestMethod]
@@ -73,6 +76,8 @@
 
 			// Assert
 			Assert.AreEqual(data, result);
+
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<GetEntryResponse>(It.Is<GetEntryRequest>(r => r.Id == existingId)), Times.Once);
 		}
 
 		[TestMethod]
@@ -83,6 +88,8 @@
 
 			// Assert
 			Assert.AreEqual(String.Empty, result);
+
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<GetEntryResponse>(It.Is<GetEntryRequest>(r => r.Id == nonExistingId)), Times.Once);
 		}
 
 		[TestMethod]
@@ -95,6 +102,8 @@
 			Assert.IsTrue(result);
 			Assert.IsTrue(String.IsNullOrEmpty(reason));
 			Assert.AreEqual(data, resultData);
+
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<GetEntryResponse>(It.Is<GetEntryRequest>(r => r.Id == existingId)), Times.Once);
 		}
 
 		[TestMethod]
@@ -107,6 +116,8 @@
 			Assert.IsFalse(result);
 			Assert.IsFalse(String.IsNullOrEmpty(reason));
 			Assert.AreEqual(String.Empty, resultData);
+
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<GetEntryResponse>(It.Is<GetEntryRequest>(r => r.Id == nonExistingId)), Times.Once);
 		}
 
 		[TestMethod]
@@ -118,6 +129,8 @@
 			// Assert
 			Assert.IsTrue(result);
 			Assert.IsTrue(String.IsNullOrEmpty(reason));
+
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<AddEntryResponse>(It.Is<AddEntryRequest>(r => r.Id == nonExistingId && r.Data == data && r.AllowOverwrite == true)), Times.Once);
 		}
 
 		[TestMethod]
@@ -129,6 +142,8 @@
 			// Assert
 			Assert.IsTrue(result);
 			Assert.IsTrue(String.IsNullOrEmpty(reason));
+
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<AddEntryResponse>(It.Is<AddEntryRequest>(r => r.Id == existingId && r.Data == data && r.AllowOverwrite == true)), Times.Once);
 		}
 
 		[TestMethod]
@@ -140,6 +155,8 @@
 			// Assert
 			Assert.IsFalse(result);
 			Assert.IsFalse(String.IsNullOrEmpty(reason));
+
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<AddEntryResponse>(It.Is<AddEntryRequest>(r => r.Id == existingId && r.Data == data && r.AllowOverwrite == false)), Times.Once);
 		}
 
 		[TestMethod]
@@ -151,6 +168,8 @@
 			// Assert
 			Assert.IsTrue(result);
 			Assert.IsTrue(String.IsNullOrEmpty(reason));
+
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<AppendEntryResponse>(It.Is<AppendEntryRequest>(r => r.Id == existingId && r.Data == data)), Times.Once);
 		}
 
 		[TestMethod]
@@ -162,6 +181,8 @@
 			// Assert
 			Assert.IsFalse(result);
 			Assert.IsFalse(String.IsNullOrEmpty(reason));
+
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<AppendEntryResponse>(It.Is<AppendEntryRequest>(r => r.Id == nonExistingId && r.Data == data)), Times.Once);
 		}
 
 		[TestMethod]
@@ -187,7 +208,7 @@
 		}
 
 		[TestMethod]
-		public void TryRemoveEntry_ExistingId_ReturnsTrue()
+		public void TryRemoveEntry_ReturnsTrue()
 		{
 			// Arrange & Act
 			bool result = tableElement.TryRemoveEntry(existingId, out string reason);
@@ -195,17 +216,8 @@
 			// Assert
 			Assert.IsTrue(result);
 			Assert.IsTrue(String.IsNullOrEmpty(reason));
-		}
 
-		[TestMethod]
-		public void TryRemoveEntry_NonExistingId_ReturnsFalseAndError()
-		{
-			// Arrange & Act
-			bool result = tableElement.TryRemoveEntry(nonExistingId, out string reason);
-
-			// Assert
-			Assert.IsFalse(result);
-			Assert.IsFalse(String.IsNullOrEmpty(reason));
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<RemoveEntryResponse>(It.Is<RemoveEntryRequest>(r => r.Id == existingId)), Times.Once);
 		}
 	}
 }
