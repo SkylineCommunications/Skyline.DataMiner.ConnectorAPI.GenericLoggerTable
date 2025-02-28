@@ -12,10 +12,13 @@
 		/// <summary>
 		/// Gets or sets the ID of the request.
 		/// </summary>
+		/// <remarks>
+		/// Id is capitalized because of how database queries are created with GetPartialTableMessage.
+		/// </remarks>
 		public string Id
 		{
 			get { return id; }
-			set { id = value.ToUpper(); } // Ensure that the ID is always in uppercase because of how logger table queries are created.
+			set { id = value.ToUpper(); }
 		}
 	}
 }
