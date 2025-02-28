@@ -33,10 +33,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	  <PackageReference Include="SharpZipLib" Version="1.4.2" />
 	  <PackageReference Include="Skyline.DataMiner.Core.DataMinerSystem.Common" Version="1.1.2.2" />
 	  <PackageReference Include="Skyline.DataMiner.Core.InterAppCalls.Common" Version="1.0.1.1" />
-	  <PackageReference Include="Skyline.DataMiner.Dev.Protocol" Version="10.3.12" />
 	</ItemGroup>
 </Project>
