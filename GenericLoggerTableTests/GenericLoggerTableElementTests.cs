@@ -1,4 +1,4 @@
-﻿namespace GenericLoggerTableTests
+﻿namespace Skyline.DataMiner.ConnectorAPI.GenericLoggerTableTests
 {
 	using System;
 
