@@ -15,7 +15,7 @@
 		public string Id
 		{
 			get { return id; }
-			set { id = value.ToUpper(); }
+			set { id = value.ToUpper(); } // Ensure that the ID is always in uppercase because of how logger table queries are created.
 		}
 	}
 }
