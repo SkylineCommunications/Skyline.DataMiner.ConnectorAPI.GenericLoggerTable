@@ -13,7 +13,7 @@
 	/// <summary>
 	/// Handles the communication between two processes using the InterApp Framework.
 	/// </summary>
-	public class InterAppHandler
+	public class InterAppHandler : IInterAppHandler
 	{
 		/// <summary>
 		/// List of known types.
@@ -55,7 +55,7 @@
 		/// Sends a message without waiting for a response.
 		/// </summary>
 		/// <param name="message">Message to send.</param>
-		internal void SendMessage(Message message)
+		public void SendMessage(Message message)
 		{
 			var interAppCall = InterAppCallFactory.CreateNew();
 
@@ -70,7 +70,7 @@
 		/// <typeparam name="T">Type of the response.</typeparam>
 		/// <param name="message">Message to send.</param>
 		/// <returns>Returns the response.</returns>
-		internal T SendMessageWithResponse<T>(Message message) where T : Message
+		public T SendMessageWithResponse<T>(Message message) where T : Message
 		{
 			var interAppCall = InterAppCallFactory.CreateNew();
 

@@ -8,11 +8,11 @@
 	using Skyline.DataMiner.Net;
 
 	/// <summary>
-	/// Represents a Generic Logger Table element in DataMiner and exposes methods to request and push data to and from its internal logger Table element.
+	/// Represents a Generic Logger Table element in DataMiner and exposes methods to request and push data to and from its internal logger table element.
 	/// </summary>
 	public class GenericLoggerTableElement : IGenericLoggerTableElement
 	{
-		private readonly InterAppHandler interApp;
+		private readonly IInterAppHandler interApp;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="GenericLoggerTableElement"/> class.
@@ -25,6 +25,18 @@
 		public GenericLoggerTableElement(IConnection connection, int agentId, int elementId)
 		{
 			this.interApp = new InterAppHandler(connection, agentId, elementId);
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="GenericLoggerTableElement"/> class.
+		/// </summary>
+		/// <param name="interApp">Implementation of IInterAppHandler.</param>
+		/// <remarks>
+		/// Required by unit tests. For internal use only.
+		/// </remarks>
+		internal GenericLoggerTableElement(IInterAppHandler interApp)
+		{
+			this.interApp = interApp;
 		}
 
 		/// <summary>
@@ -41,7 +53,7 @@
 
 			var response = interApp.SendMessageWithResponse<EntryExistsResponse>(message);
 
-			return response.Success && response.Exists;
+			return response.Exists;
 		}
 
 		/// <summary>
@@ -58,7 +70,7 @@
 
 			var response = interApp.SendMessageWithResponse<GetEntryResponse>(message);
 
-			return response.Success ? response.Data : String.Empty;
+			return response.Data;
 		}
 
 		/// <summary>
@@ -77,41 +89,9 @@
 
 			var response = interApp.SendMessageWithResponse<GetEntryResponse>(message);
 
-			data = response.Success ? response.Data : String.Empty;
-
-			return ProcessResponse(response, out reason);
-		}
-
-		/// <summary>
-		/// Removes an entry from the table based on <paramref name="id"/>.
-		/// </summary>
-		/// <param name="id">Id of entry to remove.</param>
-		public void RemoveEntry(string id)
-		{
-			var message = new RemoveEntryRequest
-			{
-				Id = id
-			};
-
-			interApp.SendMessage(message);
-		}
-
-		/// <summary>
-		/// Attempts to remove an entry from the table based on <paramref name="id"/>.
-		/// </summary>
-		/// <param name="id">Id of entry to remove.</param>
-		/// <param name="reason">Reason why the entry could not be removed.</param>
-		/// <returns>True if entry was removed, else false.</returns>
-		public bool TryRemoveEntry(string id, out string reason)
-		{
-			var message = new RemoveEntryRequest
-			{
-				Id = id
-			};
-
-			var response = interApp.SendMessageWithResponse<RemoveEntryResponse>(message);
-
-			return ProcessResponse(response, out reason);
+			data = response.Data;
+			reason = response.Error;
+			return response.Success;
 		}
 
 		/// <summary>
@@ -151,7 +131,8 @@
 
 			var response = interApp.SendMessageWithResponse<AddEntryResponse>(message);
 
-			return ProcessResponse(response, out reason);
+			reason = response.Error;
+			return response.Success;
 		}
 
 		/// <summary>
@@ -187,11 +168,13 @@
 
 			var response = interApp.SendMessageWithResponse<AppendEntryResponse>(message);
 
-			return ProcessResponse(response, out reason);
+			reason = response.Error;
+			return response.Success;
 		}
 
 		/// <summary>
 		/// Overwrites the data of an existing entry in the table based on <paramref name="id"/>.
+		/// If entry does not exist, a new entry is created.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to update the existing entry with.</param>
@@ -202,6 +185,7 @@
 
 		/// <summary>
 		/// Attempts to overwrite the data of an existing entry in the table based on <paramref name="id"/>.
+		/// If entry does not exist, a new entry is created.
 		/// </summary>
 		/// <param name="id">Id of the entry to update.</param>
 		/// <param name="data">Data to update the existing entry with.</param>
@@ -212,10 +196,36 @@
 			return TryAddEntry(id, data, true, out reason);
 		}
 
-		private bool ProcessResponse(Response response, out string reason)
+		/// <summary>
+		/// Removes an entry from the table based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		public void RemoveEntry(string id)
 		{
-			reason = response.Success ? String.Empty : response.Error;
+			var message = new RemoveEntryRequest
+			{
+				Id = id
+			};
 
+			interApp.SendMessage(message);
+		}
+
+		/// <summary>
+		/// Attempts to remove an entry from the table based on <paramref name="id"/>.
+		/// </summary>
+		/// <param name="id">Id of entry to remove.</param>
+		/// <param name="reason">Reason why the entry could not be removed.</param>
+		/// <returns>True if entry was removed, else false.</returns>
+		public bool TryRemoveEntry(string id, out string reason)
+		{
+			var message = new RemoveEntryRequest
+			{
+				Id = id
+			};
+
+			var response = interApp.SendMessageWithResponse<RemoveEntryResponse>(message);
+
+			reason = response.Error;
 			return response.Success;
 		}
 	}

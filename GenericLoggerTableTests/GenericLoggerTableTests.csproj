@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<IsPackable>false</IsPackable>
+		<CodeAnalysisRuleSet>style.ruleset</CodeAnalysisRuleSet>
+		<RootNamespace>Skyline.DataMiner.ConnectorAPI.GenericLoggerTableTests</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FluentAssertions" Version="6.12.2" />
+		<PackageReference Include="Moq" Version="4.20.72" />
+		<PackageReference Include="MSTest.TestAdapter" Version="3.6.3" />
+		<PackageReference Include="MSTest.TestFramework" Version="3.6.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\GenericLoggerTable\GenericLoggerTable.csproj" />
+	</ItemGroup>
+</Project>
