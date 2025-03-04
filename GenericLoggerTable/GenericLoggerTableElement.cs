@@ -42,13 +42,13 @@
 		/// <returns>True if entry exists, else false.</returns>
 		public bool EntryExists(string id)
 		{
-			var message = new Request
+			var request = new Request
 			{
 				Action = Action.Exists,
 				Id = id
 			};
 
-			var response = interApp.SendMessageWithResponse(message);
+			var response = interApp.SendMessageWithResponse(request);
 
 			return response.Exists;
 		}
@@ -60,13 +60,13 @@
 		/// <returns>Data contained in the requested entry.</returns>
 		public string GetEntry(string id)
 		{
-			var message = new Request
+			var request = new Request
 			{
 				Action = Action.Get,
 				Id = id
 			};
 
-			var response = interApp.SendMessageWithResponse(message);
+			var response = interApp.SendMessageWithResponse(request);
 
 			return response.Data;
 		}
@@ -80,13 +80,13 @@
 		/// <returns>True if data was retrieved, else false.</returns>
 		public bool TryGetEntry(string id, out string data, out string reason)
 		{
-			var message = new Request
+			var request = new Request
 			{
 				Action = Action.Get,
 				Id = id
 			};
 
-			var response = interApp.SendMessageWithResponse(message);
+			var response = interApp.SendMessageWithResponse(request);
 
 			data = response.Data;
 			reason = response.Error;
@@ -101,7 +101,7 @@
 		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
 		public void AddEntry(string id, string data, bool allowOverwrite)
 		{
-			var message = new Request
+			var request = new Request
 			{
 				Action = Action.Add,
 				Id = id,
@@ -109,7 +109,7 @@
 				AllowOverwrite = allowOverwrite
 			};
 
-			interApp.SendMessage(message);
+			interApp.SendMessage(request);
 		}
 
 		/// <summary>
@@ -122,7 +122,7 @@
 		/// <returns>True if entry was added, else false.</returns>
 		public bool TryAddEntry(string id, string data, bool allowOverwrite, out string reason)
 		{
-			var message = new Request
+			var request = new Request
 			{
 				Action = Action.Add,
 				Id = id,
@@ -130,7 +130,7 @@
 				AllowOverwrite = allowOverwrite
 			};
 
-			var response = interApp.SendMessageWithResponse(message);
+			var response = interApp.SendMessageWithResponse(request);
 
 			reason = response.Error;
 			return response.Success;
@@ -143,14 +143,14 @@
 		/// <param name="data">Data to append.</param>
 		public void AppendEntry(string id, string data)
 		{
-			var message = new Request
+			var request = new Request
 			{
 				Action = Action.Append,
 				Id = id,
 				Data = data
 			};
 
-			interApp.SendMessage(message);
+			interApp.SendMessage(request);
 		}
 
 		/// <summary>
@@ -162,14 +162,14 @@
 		/// <returns>True if entry was appended, else false.</returns>
 		public bool TryAppendEntry(string id, string data, out string reason)
 		{
-			var message = new Request
+			var request = new Request
 			{
 				Action = Action.Append,
 				Id = id,
 				Data = data
 			};
 
-			var response = interApp.SendMessageWithResponse(message);
+			var response = interApp.SendMessageWithResponse(request);
 
 			reason = response.Error;
 			return response.Success;
@@ -205,13 +205,13 @@
 		/// <param name="id">Id of entry to remove.</param>
 		public void RemoveEntry(string id)
 		{
-			var message = new Request
+			var request = new Request
 			{
 				Action = Action.Remove,
 				Id = id
 			};
 
-			interApp.SendMessage(message);
+			interApp.SendMessage(request);
 		}
 
 		/// <summary>
@@ -222,13 +222,13 @@
 		/// <returns>True if entry was removed, else false.</returns>
 		public bool TryRemoveEntry(string id, out string reason)
 		{
-			var message = new Request
+			var request = new Request
 			{
 				Action = Action.Remove,
 				Id = id
 			};
 
-			var response = interApp.SendMessageWithResponse(message);
+			var response = interApp.SendMessageWithResponse(request);
 
 			reason = response.Error;
 			return response.Success;

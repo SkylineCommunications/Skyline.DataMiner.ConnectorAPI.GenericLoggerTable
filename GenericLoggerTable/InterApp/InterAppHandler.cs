@@ -38,14 +38,14 @@
 		}
 
 		/// <summary>
-		/// Sends a message without waiting for a response.
+		/// Sends a request without waiting for a response.
 		/// </summary>
-		/// <param name="message">Message to send.</param>
-		public void SendMessage(Message message)
+		/// <param name="request">Request to send.</param>
+		public void SendMessage(Request request)
 		{
 			var interAppCall = InterAppCallFactory.CreateNew();
 
-			interAppCall.Messages.Add(message);
+			interAppCall.Messages.Add(request);
 
 			interAppCall.Send(connection, agentId, elementId, 9000000, KnownTypes);
 		}

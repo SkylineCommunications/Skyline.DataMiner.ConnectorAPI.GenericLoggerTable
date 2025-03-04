@@ -4,7 +4,7 @@
 
 	internal interface IInterAppHandler
 	{
-		void SendMessage(Message message);
+		void SendMessage(Request request);
 
 		Response SendMessageWithResponse(Request request);
 	}
