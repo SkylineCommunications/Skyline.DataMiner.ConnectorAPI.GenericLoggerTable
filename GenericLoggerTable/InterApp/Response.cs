@@ -1,4 +1,4 @@
-﻿namespace Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.InterApp.Responses
+﻿namespace Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.InterApp
 {
 	using Skyline.DataMiner.Core.InterAppCalls.Common.CallSingle;
 
@@ -16,5 +16,17 @@
 		/// Gets or sets the error message if request was not successful.
 		/// </summary>
 		public string Error { get; set; }
+
+		/// <summary>
+		/// Gets or sets the data.
+		/// </summary>
+		/// <remarks>Used by <see cref="Action.Get"/>.</remarks>
+		public string Data { get; set; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the entry exists.
+		/// </summary>
+		/// <remarks>Used by <see cref="Action.Exists"/>.</remarks>
+		public bool Exists { get; set; }
 	}
 }

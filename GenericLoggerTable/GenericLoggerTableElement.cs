@@ -1,10 +1,6 @@
 ﻿namespace Skyline.DataMiner.ConnectorAPI.GenericLoggerTable
 {
-	using System;
-
 	using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.InterApp;
-	using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.InterApp.Requests;
-	using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.InterApp.Responses;
 	using Skyline.DataMiner.Net;
 
 	/// <summary>
@@ -20,8 +16,8 @@
 		/// <param name="connection">Connection used to communicate with the Generic Logger Table element.</param>
 		/// <param name="agentId">Id of the agent on which the Generic Logger Table element is hosted.</param>
 		/// <param name="elementId">Id of the Generic Logger Table element.</param>
-		/// <exception cref="ArgumentNullException">Throws if <paramref name="connection"/> is null.</exception>
-		/// <exception cref="ArgumentOutOfRangeException">Throws if <paramref name="agentId"/> or <paramref name="elementId"/> are negative or zero.</exception>
+		/// <exception cref="System.ArgumentNullException">Throws if <paramref name="connection"/> is null.</exception>
+		/// <exception cref="System.ArgumentOutOfRangeException">Throws if <paramref name="agentId"/> or <paramref name="elementId"/> are negative or zero.</exception>
 		public GenericLoggerTableElement(IConnection connection, int agentId, int elementId)
 		{
 			this.interApp = new InterAppHandler(connection, agentId, elementId);
@@ -46,12 +42,13 @@
 		/// <returns>True if entry exists, else false.</returns>
 		public bool EntryExists(string id)
 		{
-			var message = new EntryExistsRequest
+			var message = new Request
 			{
+				Action = Action.Exists,
 				Id = id
 			};
 
-			var response = interApp.SendMessageWithResponse<EntryExistsResponse>(message);
+			var response = interApp.SendMessageWithResponse(message);
 
 			return response.Exists;
 		}
@@ -63,12 +60,13 @@
 		/// <returns>Data contained in the requested entry.</returns>
 		public string GetEntry(string id)
 		{
-			var message = new GetEntryRequest
+			var message = new Request
 			{
+				Action = Action.Get,
 				Id = id
 			};
 
-			var response = interApp.SendMessageWithResponse<GetEntryResponse>(message);
+			var response = interApp.SendMessageWithResponse(message);
 
 			return response.Data;
 		}
@@ -82,12 +80,13 @@
 		/// <returns>True if data was retrieved, else false.</returns>
 		public bool TryGetEntry(string id, out string data, out string reason)
 		{
-			var message = new GetEntryRequest
+			var message = new Request
 			{
+				Action = Action.Get,
 				Id = id
 			};
 
-			var response = interApp.SendMessageWithResponse<GetEntryResponse>(message);
+			var response = interApp.SendMessageWithResponse(message);
 
 			data = response.Data;
 			reason = response.Error;
@@ -102,8 +101,9 @@
 		/// <param name="allowOverwrite">True if existing entry can be overwritten, else false.</param>
 		public void AddEntry(string id, string data, bool allowOverwrite)
 		{
-			var message = new AddEntryRequest
+			var message = new Request
 			{
+				Action = Action.Add,
 				Id = id,
 				Data = data,
 				AllowOverwrite = allowOverwrite
@@ -122,14 +122,15 @@
 		/// <returns>True if entry was added, else false.</returns>
 		public bool TryAddEntry(string id, string data, bool allowOverwrite, out string reason)
 		{
-			var message = new AddEntryRequest
+			var message = new Request
 			{
+				Action = Action.Add,
 				Id = id,
 				Data = data,
 				AllowOverwrite = allowOverwrite
 			};
 
-			var response = interApp.SendMessageWithResponse<AddEntryResponse>(message);
+			var response = interApp.SendMessageWithResponse(message);
 
 			reason = response.Error;
 			return response.Success;
@@ -142,8 +143,9 @@
 		/// <param name="data">Data to append.</param>
 		public void AppendEntry(string id, string data)
 		{
-			var message = new AppendEntryRequest
+			var message = new Request
 			{
+				Action = Action.Append,
 				Id = id,
 				Data = data
 			};
@@ -160,13 +162,14 @@
 		/// <returns>True if entry was appended, else false.</returns>
 		public bool TryAppendEntry(string id, string data, out string reason)
 		{
-			var message = new AppendEntryRequest
+			var message = new Request
 			{
+				Action = Action.Append,
 				Id = id,
 				Data = data
 			};
 
-			var response = interApp.SendMessageWithResponse<AppendEntryResponse>(message);
+			var response = interApp.SendMessageWithResponse(message);
 
 			reason = response.Error;
 			return response.Success;
@@ -202,8 +205,9 @@
 		/// <param name="id">Id of entry to remove.</param>
 		public void RemoveEntry(string id)
 		{
-			var message = new RemoveEntryRequest
+			var message = new Request
 			{
+				Action = Action.Remove,
 				Id = id
 			};
 
@@ -218,12 +222,13 @@
 		/// <returns>True if entry was removed, else false.</returns>
 		public bool TryRemoveEntry(string id, out string reason)
 		{
-			var message = new RemoveEntryRequest
+			var message = new Request
 			{
+				Action = Action.Remove,
 				Id = id
 			};
 
-			var response = interApp.SendMessageWithResponse<RemoveEntryResponse>(message);
+			var response = interApp.SendMessageWithResponse(message);
 
 			reason = response.Error;
 			return response.Success;

@@ -4,8 +4,6 @@
 	using System.Collections.Generic;
 	using System.Linq;
 
-	using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.InterApp.Requests;
-	using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.InterApp.Responses;
 	using Skyline.DataMiner.Core.InterAppCalls.Common.CallBulk;
 	using Skyline.DataMiner.Core.InterAppCalls.Common.CallSingle;
 	using Skyline.DataMiner.Net;
@@ -18,19 +16,7 @@
 		/// <summary>
 		/// List of known types.
 		/// </summary>
-		public static IReadOnlyList<Type> KnownTypes { get; } = new List<Type>
-		{
-			typeof(AddEntryRequest),
-			typeof(AddEntryResponse),
-			typeof(AppendEntryRequest),
-			typeof(AppendEntryResponse),
-			typeof(EntryExistsRequest),
-			typeof(EntryExistsResponse),
-			typeof(GetEntryRequest),
-			typeof(GetEntryResponse),
-			typeof(RemoveEntryRequest),
-			typeof(RemoveEntryResponse),
-		};
+		public static IReadOnlyList<Type> KnownTypes { get; } = new List<Type> { typeof(Request), typeof(Response) };
 
 		private readonly IConnection connection;
 		private readonly int agentId;
@@ -65,20 +51,19 @@
 		}
 
 		/// <summary>
-		/// Sends a message and waits for a response.
+		/// Sends a request and waits for a response.
 		/// </summary>
-		/// <typeparam name="T">Type of the response.</typeparam>
-		/// <param name="message">Message to send.</param>
+		/// <param name="request">Request to send.</param>
 		/// <returns>Returns the response.</returns>
-		public T SendMessageWithResponse<T>(Message message) where T : Message
+		public Response SendMessageWithResponse(Request request)
 		{
 			var interAppCall = InterAppCallFactory.CreateNew();
 
-			interAppCall.Messages.Add(message);
+			interAppCall.Messages.Add(request);
 
 			var responses = interAppCall.Send(connection, agentId, elementId, 9000000, TimeSpan.FromMinutes(1), KnownTypes);
 
-			return (T)responses.SingleOrDefault();
+			return (Response)responses.SingleOrDefault();
 		}
 	}
 }

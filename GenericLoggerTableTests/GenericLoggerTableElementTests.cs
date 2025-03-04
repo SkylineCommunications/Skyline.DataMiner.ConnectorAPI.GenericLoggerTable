@@ -1,15 +1,13 @@
 ﻿namespace Skyline.DataMiner.ConnectorAPI.GenericLoggerTableTests
 {
-	using System;
-
 	using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 	using Moq;
 
 	using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable;
 	using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.InterApp;
-	using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.InterApp.Requests;
-	using Skyline.DataMiner.ConnectorAPI.GenericLoggerTable.InterApp.Responses;
+
+	using String = System.String;
 
 	[TestClass]
 	public class GenericLoggerTableElementTests
@@ -26,20 +24,20 @@
 		public void Setup()
 		{
 			mockInterAppHandler = new Mock<IInterAppHandler>();
-			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<EntryExistsResponse>(It.Is<EntryExistsRequest>(req => req.Id == existingId))).Returns(new EntryExistsResponse { Exists = true });
-			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<EntryExistsResponse>(It.Is<EntryExistsRequest>(req => req.Id == nonExistingId))).Returns(new EntryExistsResponse { Exists = false });
+			mockInterAppHandler.Setup(x => x.SendMessageWithResponse(It.Is<Request>(req => req.Id == existingId && req.Action == Action.Exists))).Returns(new Response { Exists = true });
+			mockInterAppHandler.Setup(x => x.SendMessageWithResponse(It.Is<Request>(req => req.Id == nonExistingId && req.Action == Action.Exists))).Returns(new Response { Exists = false });
 
-			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<GetEntryResponse>(It.Is<GetEntryRequest>(req => req.Id == existingId))).Returns(new GetEntryResponse { Success = true, Error = String.Empty, Data = data });
-			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<GetEntryResponse>(It.Is<GetEntryRequest>(req => req.Id == nonExistingId))).Returns(new GetEntryResponse { Success = false, Error = error, Data = String.Empty });
+			mockInterAppHandler.Setup(x => x.SendMessageWithResponse(It.Is<Request>(req => req.Id == existingId && req.Action == Action.Get))).Returns(new Response { Success = true, Error = String.Empty, Data = data });
+			mockInterAppHandler.Setup(x => x.SendMessageWithResponse(It.Is<Request>(req => req.Id == nonExistingId && req.Action == Action.Get))).Returns(new Response { Success = false, Error = error, Data = String.Empty });
 
-			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<AddEntryResponse>(It.Is<AddEntryRequest>(req => req.Id == nonExistingId))).Returns(new AddEntryResponse { Success = true, Error = String.Empty });
-			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<AddEntryResponse>(It.Is<AddEntryRequest>(req => req.Id == existingId && req.AllowOverwrite == false))).Returns(new AddEntryResponse { Success = false, Error = error });
-			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<AddEntryResponse>(It.Is<AddEntryRequest>(req => req.Id == existingId && req.AllowOverwrite == true))).Returns(new AddEntryResponse { Success = true, Error = String.Empty });
+			mockInterAppHandler.Setup(x => x.SendMessageWithResponse(It.Is<Request>(req => req.Id == nonExistingId && req.Action == Action.Add))).Returns(new Response { Success = true, Error = String.Empty });
+			mockInterAppHandler.Setup(x => x.SendMessageWithResponse(It.Is<Request>(req => req.Id == existingId && req.AllowOverwrite == false && req.Action == Action.Add))).Returns(new Response { Success = false, Error = error });
+			mockInterAppHandler.Setup(x => x.SendMessageWithResponse(It.Is<Request>(req => req.Id == existingId && req.AllowOverwrite == true && req.Action == Action.Add))).Returns(new Response { Success = true, Error = String.Empty });
 
-			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<AppendEntryResponse>(It.Is<AppendEntryRequest>(req => req.Id == existingId))).Returns(new AppendEntryResponse { Success = true, Error = String.Empty });
-			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<AppendEntryResponse>(It.Is<AppendEntryRequest>(req => req.Id == nonExistingId))).Returns(new AppendEntryResponse { Success = false, Error = error });
+			mockInterAppHandler.Setup(x => x.SendMessageWithResponse(It.Is<Request>(req => req.Id == existingId && req.Action == Action.Append))).Returns(new Response { Success = true, Error = String.Empty });
+			mockInterAppHandler.Setup(x => x.SendMessageWithResponse(It.Is<Request>(req => req.Id == nonExistingId && req.Action == Action.Append))).Returns(new Response { Success = false, Error = error });
 
-			mockInterAppHandler.Setup(x => x.SendMessageWithResponse<RemoveEntryResponse>(It.Is<RemoveEntryRequest>(req => req.Id == existingId))).Returns(new RemoveEntryResponse { Success = true, Error = String.Empty });
+			mockInterAppHandler.Setup(x => x.SendMessageWithResponse(It.Is<Request>(req => req.Id == existingId && req.Action == Action.Remove))).Returns(new Response { Success = true, Error = String.Empty });
 
 			tableElement = new GenericLoggerTableElement(mockInterAppHandler.Object);
 		}
@@ -53,7 +51,7 @@
 			// Assert
 			Assert.IsTrue(result);
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<EntryExistsResponse>(It.Is<EntryExistsRequest>(r => r.Id == existingId)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == existingId && r.Action == Action.Exists)), Times.Once);
 		}
 
 		[TestMethod]
@@ -65,7 +63,7 @@
 			// Assert
 			Assert.IsFalse(result);
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<EntryExistsResponse>(It.Is<EntryExistsRequest>(r => r.Id == nonExistingId)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == nonExistingId && r.Action == Action.Exists)), Times.Once);
 		}
 
 		[TestMethod]
@@ -77,7 +75,7 @@
 			// Assert
 			Assert.AreEqual(data, result);
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<GetEntryResponse>(It.Is<GetEntryRequest>(r => r.Id == existingId)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == existingId && r.Action == Action.Get)), Times.Once);
 		}
 
 		[TestMethod]
@@ -89,7 +87,7 @@
 			// Assert
 			Assert.AreEqual(String.Empty, result);
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<GetEntryResponse>(It.Is<GetEntryRequest>(r => r.Id == nonExistingId)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == nonExistingId && r.Action == Action.Get)), Times.Once);
 		}
 
 		[TestMethod]
@@ -103,7 +101,7 @@
 			Assert.IsTrue(String.IsNullOrEmpty(reason));
 			Assert.AreEqual(data, resultData);
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<GetEntryResponse>(It.Is<GetEntryRequest>(r => r.Id == existingId)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == existingId && r.Action == Action.Get)), Times.Once);
 		}
 
 		[TestMethod]
@@ -117,7 +115,7 @@
 			Assert.IsFalse(String.IsNullOrEmpty(reason));
 			Assert.AreEqual(String.Empty, resultData);
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<GetEntryResponse>(It.Is<GetEntryRequest>(r => r.Id == nonExistingId)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == nonExistingId && r.Action == Action.Get)), Times.Once);
 		}
 
 		[TestMethod]
@@ -130,7 +128,7 @@
 			Assert.IsTrue(result);
 			Assert.IsTrue(String.IsNullOrEmpty(reason));
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<AddEntryResponse>(It.Is<AddEntryRequest>(r => r.Id == nonExistingId && r.Data == data && r.AllowOverwrite == true)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == nonExistingId && r.Data == data && r.AllowOverwrite == true && r.Action == Action.Add)), Times.Once);
 		}
 
 		[TestMethod]
@@ -143,7 +141,7 @@
 			Assert.IsTrue(result);
 			Assert.IsTrue(String.IsNullOrEmpty(reason));
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<AddEntryResponse>(It.Is<AddEntryRequest>(r => r.Id == existingId && r.Data == data && r.AllowOverwrite == true)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == existingId && r.Data == data && r.AllowOverwrite == true && r.Action == Action.Add)), Times.Once);
 		}
 
 		[TestMethod]
@@ -156,7 +154,7 @@
 			Assert.IsFalse(result);
 			Assert.IsFalse(String.IsNullOrEmpty(reason));
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<AddEntryResponse>(It.Is<AddEntryRequest>(r => r.Id == existingId && r.Data == data && r.AllowOverwrite == false)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == existingId && r.Data == data && r.AllowOverwrite == false && r.Action == Action.Add)), Times.Once);
 		}
 
 		[TestMethod]
@@ -169,7 +167,7 @@
 			Assert.IsTrue(result);
 			Assert.IsTrue(String.IsNullOrEmpty(reason));
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<AppendEntryResponse>(It.Is<AppendEntryRequest>(r => r.Id == existingId && r.Data == data)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == existingId && r.Data == data && r.Action == Action.Append)), Times.Once);
 		}
 
 		[TestMethod]
@@ -182,7 +180,7 @@
 			Assert.IsFalse(result);
 			Assert.IsFalse(String.IsNullOrEmpty(reason));
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<AppendEntryResponse>(It.Is<AppendEntryRequest>(r => r.Id == nonExistingId && r.Data == data)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == nonExistingId && r.Data == data && r.Action == Action.Append)), Times.Once);
 		}
 
 		[TestMethod]
@@ -217,7 +215,7 @@
 			Assert.IsTrue(result);
 			Assert.IsTrue(String.IsNullOrEmpty(reason));
 
-			mockInterAppHandler.Verify(x => x.SendMessageWithResponse<RemoveEntryResponse>(It.Is<RemoveEntryRequest>(r => r.Id == existingId)), Times.Once);
+			mockInterAppHandler.Verify(x => x.SendMessageWithResponse(It.Is<Request>(r => r.Id == existingId && r.Action == Action.Remove)), Times.Once);
 		}
 	}
 }

@@ -6,6 +6,6 @@
 	{
 		void SendMessage(Message message);
 
-		T SendMessageWithResponse<T>(Message message) where T : Message;
+		Response SendMessageWithResponse(Request request);
 	}
 }
