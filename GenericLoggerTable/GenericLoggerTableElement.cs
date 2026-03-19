@@ -17,7 +17,8 @@
 		public const string GenericLoggerTable_ProtocolName = "Generic Logger Table";
 
 		private readonly IConnection connection;
-		private readonly int agentId;
+        private readonly int hostingAgentId;
+        private readonly int agentId;
 		private readonly int elementId;
 		private readonly string tableName;
 
@@ -29,10 +30,11 @@
 		/// <param name="elementId">ID of the Generic Logger Table element.</param>
 		/// <exception cref="ArgumentNullException">Thrown when the provided connection or the element is null.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">Thrown when provided element or agent id is negative.</exception>
-		public GenericLoggerTableElement(IConnection connection, int agentId, int elementId)
+		public GenericLoggerTableElement(IConnection connection, int agentId, int elementId, int hostingAgentId = -1)
 		{
 			this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
-			this.agentId = agentId < 0 ? throw new ArgumentOutOfRangeException(nameof(agentId), "Agent ID cannot be negative") : agentId;
+            this.hostingAgentId = hostingAgentId;
+            this.agentId = agentId < 0 ? throw new ArgumentOutOfRangeException(nameof(agentId), "Agent ID cannot be negative") : agentId;
 			this.elementId = elementId < 0 ? throw new ArgumentOutOfRangeException(nameof(elementId), "Element ID cannot be negative") : elementId;
 			this.tableName = GetTableName();
 		}
@@ -47,10 +49,7 @@
 		{
 			var query = $"SELECT id FROM {tableName} WHERE id='{QueryEscaper.Escape(id)}' LIMIT 1 /*unlimited query*/";
 
-#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
-			var message = new ExecuteDatabaseQueryMessage(query, agentId);
-#pragma warning restore CS0612
-			var response = (ExecuteDatabaseQueryResponseMessage)connection.HandleSingleResponseMessage(message);
+			var response = SendMessage(query);
 
 			if (!String.IsNullOrEmpty(response.Error))
 			{
@@ -70,10 +69,7 @@
 		{
 			var query = $"SELECT dt FROM {tableName} WHERE id='{QueryEscaper.Escape(id)}' LIMIT 1 /*unlimited query*/";
 
-#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
-			var message = new ExecuteDatabaseQueryMessage(query, agentId);
-#pragma warning restore CS0612
-			var response = (ExecuteDatabaseQueryResponseMessage)connection.HandleSingleResponseMessage(message);
+			var response = SendMessage(query);
 
 			if (!String.IsNullOrEmpty(response.Error))
 			{
@@ -101,10 +97,7 @@
 		{
 			var query = $"SELECT dt FROM {tableName} WHERE id='{QueryEscaper.Escape(id)}' LIMIT 1 /*unlimited query*/";
 
-#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
-			var message = new ExecuteDatabaseQueryMessage(query, agentId);
-#pragma warning restore CS0612
-			var response = (ExecuteDatabaseQueryResponseMessage)connection.HandleSingleResponseMessage(message);
+			var response = SendMessage(query);
 
 			bool entryExists = response.Values.Sa.Any();
 			data = response.Values.Sa.FirstOrDefault();
@@ -120,10 +113,7 @@
 		{
 			string query = $"DELETE FROM {tableName} WHERE id = '{QueryEscaper.Escape(id)}' /*unlimited query*/";
 
-#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
-			var message = new ExecuteDatabaseQueryMessage(query, agentId);
-#pragma warning restore CS0612
-			connection.HandleSingleResponseMessage(message);
+			SendMessage(query);
 		}
 
 		/// <summary>
@@ -136,10 +126,7 @@
 		{
 			string query = $"DELETE FROM {tableName} WHERE id = '{QueryEscaper.Escape(id)}' /*unlimited query*/";
 
-#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
-			var message = new ExecuteDatabaseQueryMessage(query, agentId);
-#pragma warning restore CS0612
-			var response = (ExecuteDatabaseQueryResponseMessage)connection.HandleSingleResponseMessage(message);
+			var response = SendMessage(query);
 
 			reason = response.Error;
 			return String.IsNullOrWhiteSpace(reason);
@@ -166,10 +153,7 @@
 				query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{QueryEscaper.Escape(id)}', '{QueryEscaper.Escape(data)}', '{timestamp}') IF NOT EXISTS /*unlimited query*/";
 			}
 
-#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
-			var message = new ExecuteDatabaseQueryMessage(query, agentId);
-#pragma warning restore CS0612
-			connection.HandleSingleResponseMessage(message);
+			SendMessage(query);
 		}
 
 		/// <summary>
@@ -200,10 +184,7 @@
 				query = $"INSERT INTO {tableName} (id, dt, ts) VALUES ('{QueryEscaper.Escape(id)}', '{QueryEscaper.Escape(data)}', '{timestamp}') IF NOT EXISTS /*unlimited query*/";
 			}
 
-#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
-			var message = new ExecuteDatabaseQueryMessage(query, agentId);
-#pragma warning restore CS0612
-			var response = (ExecuteDatabaseQueryResponseMessage)connection.HandleSingleResponseMessage(message);
+			var response = SendMessage(query);
 
 			reason = response.Error;
 			return String.IsNullOrWhiteSpace(reason);
@@ -257,10 +238,7 @@
 		{
 			string query = $"UPDATE {tableName} SET dt = '{QueryEscaper.Escape(data)}' WHERE id = '{QueryEscaper.Escape(id)}' IF EXISTS /*unlimited query*/";
 
-#pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
-			var message = new ExecuteDatabaseQueryMessage(query, agentId);
-#pragma warning restore CS0612
-			connection.HandleSingleResponseMessage(message);
+			SendMessage(query);
 		}
 
 		/// <summary>
@@ -271,34 +249,41 @@
 		/// <param name="reason">Reason why the data was not be updated.</param>
 		/// <returns>True if entry was updated, else false.</returns>
 		public bool TryUpdateEntry(string id, string data, out string reason)
+        {
+            string query = $"UPDATE {tableName} SET dt = '{QueryEscaper.Escape(data)}' WHERE id = '{QueryEscaper.Escape(id)}' IF EXISTS /*unlimited query*/";
+
+            var response = SendMessage(query);
+
+            reason = response.Error;
+            if (String.IsNullOrEmpty(reason))
+            {
+                if (response.Values?.Sa.FirstOrDefault() == "True")
+                {
+                    return true;
+                }
+                else
+                {
+                    reason = "Entry doesn't exist";
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private ExecuteDatabaseQueryResponseMessage SendMessage(string query)
 		{
-			string query = $"UPDATE {tableName} SET dt = '{QueryEscaper.Escape(data)}' WHERE id = '{QueryEscaper.Escape(id)}' IF EXISTS /*unlimited query*/";
-
 #pragma warning disable CS0612 // No other functionality available (used by DataMiner Cube as well)
-			var message = new ExecuteDatabaseQueryMessage(query, agentId);
+            var message = new ExecuteDatabaseQueryMessage(query, agentId) { HostingDataMinerID = hostingAgentId };
 #pragma warning restore CS0612
-			var response = (ExecuteDatabaseQueryResponseMessage)connection.HandleSingleResponseMessage(message);
 
-			reason = response.Error;
-			if (String.IsNullOrEmpty(reason))
-			{
-				if (response.Values?.Sa.FirstOrDefault() == "True")
-				{
-					return true;
-				}
-				else
-				{
-					reason = "Entry doesn't exist";
-					return false;
-				}
-			}
-			else
-			{
-				return false;
-			}
-		}
+            var response = (ExecuteDatabaseQueryResponseMessage)connection.HandleSingleResponseMessage(message);
+            return response;
+        }
 
-		private string GetTableName()
+        private string GetTableName()
 		{
 			var prefix = String.Empty;
 
